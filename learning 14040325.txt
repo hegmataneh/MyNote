@@ -1,0 +1,149 @@
+https://faradars.org/courses/fvgit9609-git-github-gitlab?registered=1
+
+https://git-scm.com/downloads/win
+
+git init
+
+d:\to hear\Network_Pakravan\
+
+git status
+
+rm -rf .git   # use 'rmdir /s /q .git' in Windows CMD
+
+# Create a clean folder and reinitialize
+mkdir MyProject
+cd MyProject
+git init
+
+
+git config --global user.name 'mohsen'
+git config --global user.email "mohsensherkatmasoum@gmail.com"
+
+
+ou can check what’s currently configured with:
+git config --global --list
+
+
+git ls-files // get all tracked files
+
+git log --name-only // To see which files were modified in each commit
+
+git add "page*" // just check in files started with page...
+
+
+tracking new file
+git add -A // add all files گیت فایل را در نظر می گیرد
+همه رو ببر درstage
+یعنی آماده چک این شدن می شوند
+
+HEAD اون چیزی است که الان رویش کار می کنیم
+
+git commit -m 'comment'
+git commit -a -m 'commit changes by man' // commit changes with comment
+
+git diff // اگر یک فایل تغییر کرده داشته باشیم و کامیت نکرده باشیم این باعث می شود که احتلاف مشاهده شود
+
+git diff HEAD // مقایسه با آخرین ورژن
+
+
+وقتی یک فایل تغییر می کند آنرا به استیج منتقل می کنیم بعد وقتی کامیت می کنیم به ریپوزتوری اضافه می شود
+
+یک مرحله استیج اضافه کرده که یعنی فقط چیز هایی که قرار است کامیت شود انتخاب شود یک اضافه کردن یک مرحله ی جدید برای جلوگیری از کامیت و خراب شدن موارد خراب اضافه کرده
+
+git diff --staged // موارد داخل استیج رو مقایسه گیری می کند
+
+عدد منفی در گیت یعنی زمان گذشته فایل و مثبت یعنی جدیده
+
+git restore "file" // ignore changes to file and replace with commited version from source control
+
+
+git reset "file" // از استیج خارج می کند
+
+git checkout -- "file" // آخرین ورژن فایل را دریافت می کند
+
+master یا main اسم شاخه اصلی است
+
+git branch // شاخه های پروژه نمایش داده می شود
+
+git branch sth. // شاخه جدیدی اضافه می کند با نام مشخص که می شود روی اون شاخه کاری رو ادامه داد و بعدا با مین یا مستر مرج کرد
+
+
+git checkout sth. // برنچ با نام خاصی رو می کشد بیرون یا اماده تغییر می کند
+و در واقع این شاخه اماده تغییر می شود
+
+git merge sth. // تغییرات برنچ دیگر را در مستر یا مین اضافه می کند
+
+--- install nano for windows
+
+download it from https://github.com/okibcn/nano-for-windows/releases
+
+copy it to program file
+
+add environment variable -> system variable -> path -> dir of nano like c:\Program Files\nano
+
+close and open again console and write nano --version
+
+------------
+
+git rm file // remove from git branch and file system
+
+
+یک نکته مهم اینه که هر کامیت یک کاری بکند
+
+یک چیز جالب وقتی یک فایل را در برنچی پاک می کنیم و تا وقتی که در ان برنچ کامیت نکردیم در بقیه برنچ ها هم اون فایل دیگر در فایل سیستم مشاهده نمی شود ولی به محض کامیت در یک برنچ دیگر برنچ ها می فهمند که اون تغییر در دیگر برنچ است فلذا اون فایل دلیت شده در اون یکی برنچ قابل مشاهده است
+
+بعد از اینکه برنچ فرعی با اصلی مرج شد می شود پاکش کرد با دستور
+
+git branch -d sth. // delete some branch
+
+
+
+git clone remoteaddrs
+
+نسخه اصلی
+origin
+است 
+
+
+git push origin master // send taghirat to branch origin github repository from main branch in local cloned repository
+
+git pull origin main // from github to local repository
+
+
+git remote add origin addrss // یک ادرس ریموت برای اوریجین یعنی نسخه تخت گیت هاب چیزی که ما داریم اضافه می کند
+حالا اینجا معنی میده که بگیم
+git push -u  origin master
+که یعنی داره میگه حالا که برای مستر اوریجین تعیین کریم بیا مستر رو بفرست روی گیت هاب. نگکته باحال اینست که می شود برای یک مستر یا مین چند ریموت تعیین کرد که یعنی چند جا چک این کن که امنیت حفظ شود
+
+
+
+CONFLICT (content): Merge conflict in simulator/s4u-activity-testany.cpp
+Automatic merge failed; fix conflicts and then commit the result.
+
+git add -A // staged all files
+
+------- 009
+
+tag // بیشتر برای ورژن زدن استفاده می شود
+
+git tag // list all tag
+
+git tag -a v2.0 -m "text tax" // یعنی تگ بزن روی نسخه انتخابی فعلی و اسمش را بزار ورژن 2 و یک کامنت بزار براش
+
+خاصیتش اینست که میتونیم برنامه را نسخه دار کنیم یعنی بگیم نسخه فلان را برای ما الان آماده کن و ببینیمش یا برنچش کن برای ما که اونرو ادامه بدیم
+
+
+تگ در حالت عادی روی گیت هاب پوش نمی شود ولی می توان گفت بزرو پوشش کن
+
+git push origin v1.8  // نسخه مشخصی رو بفرست سمت ریموت
+git push origin --tags // همه تگ ها بفرست سمت ریموت
+
+
+اینجوری می شود یک ورژن مشخص را برای ادیت به عنوان هد قرار داد
+git checkout v2.0
+البته درستش اینه که اگر می خواهیم روی یک ورژن قدیمی کار کنیم یک برنچ بسازیم و اونرو ادامه بدیم
+git checkout -b branch_name
+
+
+----- 010
+
