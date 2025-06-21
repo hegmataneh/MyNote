@@ -1,0 +1,6 @@
+read() is a general file I/O function, while recvfrom() is specifically for socket communication.
+
+
+recvfrom() provides the source address of the incoming data, which is crucial for connectionless protocols where the sender's address is not implicitly known through a prior connection. read() does not provide this information.
+
+

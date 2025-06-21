@@ -1,0 +1,47 @@
+https://maktabkhooneh.org/course/%D8%A2%D9%85%D9%88%D8%B2%D8%B4-%D8%B1%D8%A7%DB%8C%DA%AF%D8%A7%D9%86-regular-expression-mk1006/%D9%81%D8%B5%D9%84-%DB%8C%DA%A9%D9%85-%D8%A2%D9%85%D9%88%D8%B2%D8%B4-regular-expression-ch3150/%D9%88%DB%8C%D8%AF%DB%8C%D9%88-%D9%85%D9%81%D8%A7%D9%87%DB%8C%D9%85-regular-expression-%D9%82%D8%B3%D9%85%D8%AA-1/
+
+[] براکت معنی یک کاراکتر می دهد
+
+نوشتار بیرونی رج اکس مثل سرچ عادی است
+
+
+special quantifier character + :=
+کاراکتر + می گوید یکبار یا بیشتر از یکبار و سمت چپ باشد
+
+
+special quantifier character * :=
+کاراکتر * می گوید تعداد تکرار صفر و یا بیشتر از صفر بار
+
+literally each character := \[
+
+braces or {} تعداد تکرار را مشخص می کند
+
+[A-Za-z]+ack := هر تعداد کاراکتر که باشد و بعدش ack قرار داده باشد
+
+\s := کلیه مجموعه کاراکتر های white space
+\b := border  یعنی مرز پایانی یک عبارت که حرف بعدی هر کاراکتری می تواند باشد که قابل نمایش نیست و یا اصلا کاراکتری نیست و در هر دو صورت یعنی کلمه تمام شد
+
+^ := border begin of line or file( in special case with regex flag )
+
+$ := border end of line or file( in special case with regex flag )
+
+special quantifier character ? := صفر یا یک بار تکرار یک کاراکتر
+
+special character . := معادل هر کاراکتری است دات dot
+
+special quantifier character +? := با روش غیر حریصانه جستجو را پیش می برد یعنی یکبار پیدا کرد کارش را تمام می کند
+
+special character [^] := کرت در داخل براکت به معنی عدم وجود است
+\b[^a][a-z]*\b کلماتی را پیدا کن با ابتدای یک بوردر و حرف اول ای نباشد و کلمه با حروف دیگر ادامه داشته باشد تا برسد به یک بوردر دیگرر
+
+
+\s := white space
+
+\S := not white space
+
+() := پرانتز گروه مشخص می کند
+(|) := یا اینطوری مشخص می شود 
+
+(?:) := گروه را از بین می برد و دیتاش رو به ما نمیده
+
+
