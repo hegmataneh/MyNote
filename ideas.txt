@@ -1,0 +1,14 @@
+red button to cancel all operation
+
+load prev settings
+
+echo current using setting
+
+testebility
+
+nullable
+
+empty argument
+
+crc changes
+

@@ -178,10 +178,10 @@ pull request
 
 ------
 
-git add *.js
-git add *.css
-git add *.html
+git add *.c
+git add *.cpp
+git add *.h
 
 git remote add origin https://github.com/hegmataneh/work.git
 
-git push -f origin main
+git push origin main
