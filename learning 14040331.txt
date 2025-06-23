@@ -1,4 +1,13 @@
 
+sudo agt-get install man
+sudo agt-get install man-db
+
+sudo unminimize
+
+14040402
+
+----------------
+
 // send udp packet throw port 1234 with netcat
 echo "hello" | nc -u 127.0.0.1 1234
 
