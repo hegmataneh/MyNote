@@ -1,3 +1,9 @@
+14040401
+
+sudo mount -t vboxsf simgrid2 /home/mohsen/simgrid2 
+
+--------
+
 https://faradars.org/courses/fvgit9609-git-github-gitlab?registered=1
 
 https://git-scm.com/downloads/win
@@ -185,3 +191,7 @@ git add *.h
 git remote add origin https://github.com/hegmataneh/work.git
 
 git push origin main
+
+خلاصه چند تا فولدر مجزا رو در یک ریپوزیتوری نمیشه اد کرد
+هر کی ریپوز خودش
+
