@@ -1,3 +1,14 @@
+add
+d:\workplace\config\.gitattributes
+d:\workplace\config\.gitignore
+to .git folder to ignore non usable file to staged and push into git
+
+
+مجددا رسیدیم به زبان زیبای سی که الکی بامبول در میاره و دوباره ریبیلد گاهی خطا رو درست میکنه و همه چیز رو ببندیم و مجدد باز کنیم
+
+نکنه  از این مشکلات نوستن در حافظه بقیه جاها رو داشته باشیم و مموری کنترل اصلا نداشته باشیم
+
+
 
 sudo agt-get install man
 sudo agt-get install man-db
@@ -11,7 +22,7 @@ sudo unminimize
 
 14040401
 
-sudo mount -t vboxsf simgrid2 /home/mohsen/simgrid2 
+sudo mount -t vboxsf workplace /home/mohsen/workplace 
 
 ----------------
 
