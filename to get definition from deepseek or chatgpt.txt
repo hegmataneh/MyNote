@@ -1,0 +1,14 @@
+consider these header files and all its sub header files
+#include <time.h>
+and please get me just most used definition of content that exist in headers without any comment  in one text result no bullet or partition at all
+
+
+consider these header files and all its sub header files
+#include <sys/socket.h>
+and please get me  definition of content that exist in headers without any comment  in one text result no bullet or partition at all
+
+
+please get me  c language htons function definition and all of it dependency definition without any comment in one text result no bullet or partition at all
+
+
+please get me c language most common and used function and definitions and struct without any comment  in one text result no bullet or partition at all

@@ -1,3 +1,6 @@
 c language tcp server accept connection on multi port
 
-https://github.com/hegmataneh/vs-slns.git
+c language any lockless prevent critical section accss
+
+c language standard atomic_int
+

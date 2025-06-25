@@ -13,3 +13,6 @@ empty argument
 crc changes
 
 check struct with just one nested struct has sizeof() inner struct only not more
+
+donot make fragment memory allocation
+

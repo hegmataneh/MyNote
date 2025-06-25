@@ -1,3 +1,40 @@
+if #include "DefAndSyntaxHighlightingAssistant.h" added at the end of include file then syntax highlighter recognize it
+
+and fill it with 
+consider these header files and all its sub header files
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <stdarg.h>
+#include <sys/time.h>
+#include <sys/select.h>
+#include <sys/types.h>          /* See NOTES */
+#include <time.h>
+and please get me just most used definition of content that exist in headers without any comment  in one text result no bullet or partition at all
+
+in deepseek
+
+--
+
+add __INTELISENSE_BUILD__=$(IntelliSenseBuild) into project properties -> c/c++ -> preprocessor -> preprocessor definition to distigush intellisence time in project then
+write this in .c code
+
+#if defined(INTELISENSE_BUILD) && INTELISENSE_BUILD + 0
+
+typedef unsigned long size_t;
+typedef void * va_list;
+
+#endif
+
+that do intellisence compiler know type
+
+
+14040404
+--------------------
+
 add
 d:\workplace\config\.gitattributes
 d:\workplace\config\.gitignore
