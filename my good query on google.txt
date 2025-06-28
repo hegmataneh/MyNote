@@ -4,3 +4,5 @@ c language any lockless prevent critical section accss
 
 c language standard atomic_int
 
+show me sample about tc command in linux
+

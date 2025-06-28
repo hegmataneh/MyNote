@@ -1,0 +1,8 @@
+in iPerf command By default, iPerf uses 1470 bytes for UDP payload (to avoid fragmentation over Ethernet with a standard 1500-byte MTU).
+
+fragmentation over Ethernet 
+
+یعنی چی
+
+-----------
+

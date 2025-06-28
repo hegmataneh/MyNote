@@ -1,3 +1,19 @@
+sudo apt-get install iperf
+
+show me sample about tc command in linux
+
+to monitore tcp and udp socket
+
+Linux tc (Traffic Control) & ss (Socket Statistics)
+
+iperf3, Wireshark, netstat -su (UDP stats), nload (bandwidth monitor
+
+The nload command is a Linux utility used to monitor network traffic and bandwidth usage in real-time.
+
+14040407
+
+------------------
+
 if #include "DefAndSyntaxHighlightingAssistant.h" added at the end of include file then syntax highlighter recognize it
 
 and fill it with 
@@ -55,7 +71,6 @@ sudo unminimize
 14040402
 
 ----------------
-
 
 14040401
 
