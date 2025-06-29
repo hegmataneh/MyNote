@@ -1,3 +1,24 @@
+
+
+
+
+14040408
+
+-----------------
+
+iperf clode connection after no data input
+
+{
+iperf -c 192.168.100.60 -u -p 1234 -l 1000 -t 10
+make udp packet in client mode to ip to port with packet size with duration 10
+}
+
+{
+iperf -s -u -p 1234
+listen on udp port in server mode on port 1234
+}
+
+
 sudo apt-get install iperf
 
 show me sample about tc command in linux
@@ -356,17 +377,13 @@ $(RemoteHeadersDir)
 
 ------------
 
-
 tets nmap
 
 diagnose of of domain nmap -O <Domain Name>
 
 inet-utils-traceroute
 
-
-
 sudo apt install hping3
-
 
 iptables -t nat -L
 
@@ -376,24 +393,17 @@ sudo sysctl -a | grep broad
 history of shell command
 history | awk '{$1=""; print $0}' | sed 's/^ *//' | sort | uniq
 
-
-
 sudo apt install openssh-server
 
-
-
 hping3 -1 -c 1 192.168.100.200  -- ping icmp one time to ip
-
 
 sudo adduser mohsen
 
 ssh mohsen@192.168.100.201
 
-
 sudo apt-get install ninja-build
 
 ---------
-
 
 configuration properties
 	c/c++
@@ -415,13 +425,11 @@ configuration properties
 		additional sources to copy 
 d:\My project\General projects\general\dep\general.dep:=$(RemoteRootDir)/$(ProjectName)/dep/general.dep;d:\My project\General projects\general\dep\general.use:=$(RemoteRootDir)/$(ProjectName)/dep/general.use;d:\My project\General projects\general\dep\general.inc:=$(RemoteRootDir)/$(ProjectName)/dep/general.inc
 
-
 -----------
 
 خروجی ها در linux console نمایان می شود
 
 -----------
-
 
 ignore warning : ‘’ defined but not used [-Wunused-function]
 
@@ -441,14 +449,12 @@ C11	2011	_Atomic, multi-threading support, static_assert, etc.
 C17	2017	Bug fixes to C11, no new features
 C23	2023	Modern updates, including memory safety improvements
 
-
 ---------
 
 recongize c version
 
 in ubuntu
 echo | gcc -x c -E -dM - | grep __STDC_VERSION__
-
 
 in code
  #if __STDC_VERSION__ >= 202311L
@@ -546,11 +552,6 @@ CMake is a cross-platform build system generator
 وقتی یک cross platform جدید می سازیم پروژه های قدیمی هم کانفیگش خراب می شود و روی ip جدیده قرار می گیرد و باید دستی درست شود
 
 
-
-
 tcpdump udp dst port 1234
 
-
 --------
-
-

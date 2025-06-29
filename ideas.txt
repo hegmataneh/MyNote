@@ -1,3 +1,14 @@
+benchmark of protocole bridge app
+
+store
+
+reciv time
+sent time
+reciv ack
+
+
+----------
+
 red button to cancel all operation
 
 load prev settings
@@ -56,10 +67,7 @@ Concepts: Nginx, HAProxy, Layer 4 vs Layer 7 balancing
 
 Why: Needed for scaling, SSL termination, and request routing in web apps.
 
-
-
 Concepts: SNAT, DNAT, PAT, port mapping
-
 
 DNS resolution failure
 
