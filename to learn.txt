@@ -1,3 +1,11 @@
 
 from dr.akbari https://refactoring.guru/
 
+
+ncurses lib terminal text
+
+uterm xterm or terminal text ghashang
+
+TUI (text user interface) 
+
+If you don’t want to code all in C, you can make your C app output data and pipe it to:

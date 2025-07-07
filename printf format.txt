@@ -1,0 +1,23 @@
++----------------------+-----------+----------------+----------------------------------------------+
+| Data Type            | Modifier  | Format         | Sample Code                                   |
++----------------------+-----------+----------------+----------------------------------------------+
+| char                 | signed    | %c / %d        | signed char a = 'A'; printf("%c %d", a, a);   |
+| char                 | unsigned  | %c / %u        | unsigned char b = 65; printf("%c %u", b, b);  |
+| short                | signed    | %hd            | short c = -123; printf("%hd", c);             |
+| short                | unsigned  | %hu            | unsigned short d = 456; printf("%hu", d);     |
+| int                  | signed    | %d             | int e = -789; printf("%d", e);                |
+| int                  | unsigned  | %u             | unsigned int f = 1234; printf("%u", f);       |
+| long                 | signed    | %ld            | long g = -56789; printf("%ld", g);            |
+| long                 | unsigned  | %lu            | unsigned long h = 67890; printf("%lu", h);    |
+| long long            | signed    | %lld           | long long i = -123456789LL; printf("%lld", i);|
+| long long            | unsigned  | %llu           | unsigned long long j = 123456789ULL; printf("%llu", j); |
+| int64_t              | signed    | %llu           | int64_t k = -9999999999; printf("%" PRId64, k);|
+| uint64_t             | unsigned  | %llu           | uint64_t l = 9999999999U; printf("%" PRIu64, l);|
+| float                | —         | %f %.2f        | float m = 1.23f; printf("%f", m);             |
+| double               | —         | %f %.2f        | double n = 4.56; printf("%f", n);             |
+| long double          | —         | %Lf            | long double o = 7.89L; printf("%Lf", o);      |
+| size_t               | unsigned  | %zu            | size_t p = 100; printf("%zu", p);             |
+| ptrdiff_t            | signed    | %td            | ptrdiff_t q = -1; printf("%td", q);           |
+| void*                | pointer   | %p             | int *r = &e; printf("%p", r);                 |
+| _Bool / bool         | —         | %d             | bool s = true; printf("%d", s);               |
++----------------------+-----------+----------------+----------------------------------------------+
