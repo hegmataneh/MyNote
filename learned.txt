@@ -1,5 +1,20 @@
+در ubuntu فولد را با یوزر su ساختم پس یوزر محسن دسترسی بهش نداشت پس با دستور زیر آنرا بهش دسترسی دادم
+
+sudo chown -R myuser:myuser /home/myuser
 
 
+on windows type : route
+route add 192.168.100.0 mask 255.255.255.0 <gateway-on-192.168.1.x>
+route add 192.168.100.60 mask 255.255.255.255 192.168.1.65
+
+
+on ubuntu ip addr // , find the interface names. On Ubuntu:
+ifconfig
+
+
+14040420
+
+----------
 
 بعضی توابع مثل fileno نیاز دارند که قبل از include هدر برای آن مشخص شود  posix آنت چیست
 
