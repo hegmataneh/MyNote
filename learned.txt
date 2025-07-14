@@ -1,5 +1,35 @@
+i have c language code that recieve data from udp and send it throw tcp port. so i use select on udp port to inform about recieve data. but after some time passed  select does not get any message anymore . and this time is different in any scenario i execute. so what is your opinion about this problem and how can i fix this
+
+Ephemeral port change on sender side (less likely but real)
+
+int error = 0;
+socklen_t errlen = sizeof(error);
+getsockopt(udp_fd, SOL_SOCKET, SO_ERROR, &error, &errlen);
+printf("Socket error: %d\n", error);
 
 
+netstat -su // Overrun / dropped packets
+
+14040423
+
+-----------------
+
+to set app properties
+
+extention to delete on clean -> *.dep;*.inc;*.use;*.d;*.tlog;$(ExtensionsToDeleteOnClean)
+library dependency -> ncurses
+
+c/c++ additional options -> -D__COMPILE 
+
+in dep file -> #if !defined(__COMPILE) && defined(__PROJECT_NAME__) && __PROJECT_NAME__ == ##project name##
+
+14040422
+
+------------
+
+14040417
+
+-----------------
 
 بعضی توابع مثل fileno نیاز دارند که قبل از include هدر برای آن مشخص شود  posix آنت چیست
 
@@ -53,9 +83,16 @@ make udp packet in client mode to ip to port with packet size with duration 10
 }
 
 {
-iperf -s -u -p 1234
+
+iperf زارتی پورت را می بندد
+
+iperf -s -u -p 1234 // udp
+iperf -s -p 4321 // tcp
+
 listen on udp port in server mode on port 1234
 }
+
+tcpdump udp dst port 1234
 
 
 sudo apt-get install iperf
