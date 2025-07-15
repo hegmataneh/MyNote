@@ -13,6 +13,14 @@ netstat -su // Overrun / dropped packets
 14040423
 
 -----------------
+در ubuntu فولد را با یوزر su ساختم پس یوزر محسن دسترسی بهش نداشت پس با دستور زیر آنرا بهش دسترسی دادم
+
+sudo chown -R myuser:myuser /home/myuser
+
+
+on windows type : route
+route add 192.168.100.0 mask 255.255.255.0 <gateway-on-192.168.1.x>
+route add 192.168.100.60 mask 255.255.255.255 192.168.1.65
 
 to set app properties
 
@@ -20,6 +28,13 @@ extention to delete on clean -> *.dep;*.inc;*.use;*.d;*.tlog;$(ExtensionsToDelet
 library dependency -> ncurses
 
 c/c++ additional options -> -D__COMPILE 
+on ubuntu ip addr // , find the interface names. On Ubuntu:
+ifconfig
+
+
+14040420
+
+----------
 
 in dep file -> #if !defined(__COMPILE) && defined(__PROJECT_NAME__) && __PROJECT_NAME__ == ##project name##
 
