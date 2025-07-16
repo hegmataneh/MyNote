@@ -1,5 +1,3 @@
-linux
-
 --------
 
 benchmark of protocole bridge app
@@ -9,7 +7,6 @@ store
 reciv time
 sent time
 reciv ack
-
 
 ----------
 
@@ -33,20 +30,14 @@ donot make fragment memory allocation
 
 ---------
 
-to serach
-
-to Reasearch:
+to serach/Reasearch:
 
 RTT 70 mili second yani chi
 google analytics
 
-nano command and command
 
-c language version ✅
-gcc version and capabilities ✅
 gdb version
-cmake 
-git
+cmake  
 what s gcc and difference to g++
 powershell
 CLang
@@ -58,10 +49,8 @@ IntelliJ
 CI/CD systems
 
 
-
-
 🔧 9. Diagnostics and Monitoring Tools
-Tools: , traceroute, netstat, , wireshark, nslookup, dig, nmap, curl
+Tools: , traceroute, netstat, wireshark, nslookup, dig, nmap, curl
 
 Why: Troubleshooting and verifying connectivity are core skills.
 
@@ -96,11 +85,6 @@ Packet Loss	Packets get lost due to overload, interference, or bad routing
 Bandwidth Saturation	Network link is constantly used to max capacity
 Bufferbloat	Excessive buffering causes delay (common in routers)
 
-
-iperf
-
 Every network device (routers, switches, NICs, OS sockets) uses buffers.
 
 در خصوص عینک موضوع blucut و bluecontrol تحقیق شود گویا بلو کنترل بهتر عمل می کند
-
-

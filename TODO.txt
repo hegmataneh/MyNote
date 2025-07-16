@@ -1,9 +1,14 @@
 
-in protocol_bridge تبدیل به دو ترد برای خواندن مجزا و نوشتن مجزا در دو ترد و در بافر کش کننده
 
-چرا بیرون می پرد
+tcp benchmark
 
-sys alive check
+packet lost
+
+packet lost udp
+
+خواندن مطالب آخر chatgpt , deepseek , kimi که ببینم مانیتور پکت ها به چه صورتی است
+
+
 
 -------
 

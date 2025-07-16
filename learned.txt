@@ -1,3 +1,97 @@
+
+wget http://192.168.100.59:8000/ubuntu.vdi -O output_file >wget_^Cg.txt 2>&1
+python3 -m http.server 8000
+
+passworless sudo super user
+
+
+
+
+
+iftop
+{
+-If you press the t key while running iftop, you can switch to cumulative total bytes transferred instead of rates.
+-But you can press the S and D keys to toggle displaying source and destination ports:
+
+Press ? in iftop to see all the key bindings:
+t — cycles through 2/10/40 second totals / rates
+T — toggles total / cumulative mode
+S — toggle source port
+D — toggle destination port
+f — set filter
+n — toggle DNS resolution
+h — toggle hostname display
+q — quit
+}
+
+
+
+tools use to monitor network throughput
+{
+
+sudo pktstat -i enp0s3 // to more check and use
+sudo iftop -i enp0s3 -f "udp port 1234" // good one
+
+watch -n 1 netstat -su // to watch sumup report
+
+iperf3 -s (on server)
+iperf3 -c server_ip -u -b 100M (on client)
+
+Packet Monitoring Tools
+iftop: shows real-time traffic (like a bandwidth meter)
+
+nload: shows bandwidth per interface (not port-level)
+
+tcpdump: captures raw packets
+
+wireshark: GUI packet analyzer
+
+netstat / ss: shows open ports and connections
+
+iptraf-ng, bmon, pktstat: per-port and per-protocol stats
+
+4. Traffic Generation Tools
+hping3: manual packets, good for testing
+
+iperf3: benchmarking throughput with server/client model
+
+nping: part of nmap, can send many UDP/TCP/ICMP packets
+
+Traffic shaping, buffer overrun, and congestion control
+
+}
+
+14040425
+
+--------
+
+sudo hping3 --udp -p 5001 --flood <target_ip>
+
+ip link // interfaces
+
+nc -u -l // show packet received
+
+
+network namespace
+sudo ip netns add testns // make namespace like new env for testing network
+sudo ip netns exec testns bash // exec bash app in that namespace . so every network command i exec is exec inside namespace
+
+sudo ip netns delete testns // delete namespace
+ip netns list // list namespaces
+
+
+ip netns identify $$ // test inside namespace
+
+
+
+
+
+watch -n 1 netstat -su // هر ثانیه مثلا یک دستور را اجرا می کند و نتیجه را می نویسد
+
+14040424
+
+--------------
+
 i have c language code that recieve data from udp and send it throw tcp port. so i use select on udp port to inform about recieve data. but after some time passed  select does not get any message anymore . and this time is different in any scenario i execute. so what is your opinion about this problem and how can i fix this
 
 Ephemeral port change on sender side (less likely but real)
@@ -63,7 +157,7 @@ sudo apt update
 sudo apt install libncurses5-dev libncursesw5-dev
 
 
-use ncurses for TUI (text user interface) 
+use ncurses for TUI (text user interface)
 
 14040416
 
