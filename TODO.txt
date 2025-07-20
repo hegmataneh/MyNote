@@ -1,4 +1,7 @@
 
+benchmark 1 second 
+benchmark 10 second 
+benchmark 40 second 
 
 tcp benchmark
 
@@ -6,8 +9,7 @@ packet lost
 
 packet lost udp
 
-خواندن مطالب آخر chatgpt , deepseek , kimi که ببینم مانیتور پکت ها به چه صورتی است
-
+install linux and vs code on it
 
 
 -------

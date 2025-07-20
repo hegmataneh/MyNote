@@ -1,14 +1,49 @@
 
+auto complete
+{
+	vi /etc/inputrc // اینو حمیدی زد برای اینکه اوتو کامپلیت کامند های زده شده در لینوکس تکمیل شود	
+	shift+zz to save and exit
+}
+
+python3 -m http.server 8000 // در فولدری که می خواهیم فایل سرور اونرو هندل کند میزینم
+
+wget http://192.168.100.59:8000/client2-disk1.vdi
+
+apt install ntpsec // time server
+
+nuttcp // active monitoring . van benchmark throughput in very high-speed UDP 
+{
+}
+
+iftop / iptraf / bmon // Show real-time bandwidth usage per connection / interface.
+
+wireshark/tshark // Passive monitoring only
+{
+sudo apt install wireshark tshark
+
+sudo tshark -i <interface> -f "udp" -Y "udp.port == <port_number> && ip.addr == <ip_address>" // Basic tshark command to capture UDP packets
+sudo tshark -i <interface> -f "udp" -Y "udp.port == <port_number> && ip.addr == <ip_address>" -x // To see raw packet data in hex/ascii format
+sudo tshark -i <interface> -f "udp" -Y "udp.port == <port_number> && ip.addr == <ip_address>" -V // To see detailed packet structure
+sudo tshark -i eth0 -f "udp" -Y "udp.port == 1234 && ip.addr == 192.168.1.100" -w udp_capture.pcap // Save to file and read later
+tshark -r udp_capture.pcap -V -x // To read the saved file:
+
+-c <count>: Capture only <count> packets then stop
+-T fields -e <field>: Output specific fields only
+-l: Flush output after each packet (good for real-time viewing)
+
+}
+
+14040428
+
+------------
+
 wget http://192.168.100.59:8000/ubuntu.vdi -O output_file >wget_^Cg.txt 2>&1
 python3 -m http.server 8000
 
 passworless sudo super user
 
 
-
-
-
-iftop
+iftop // Passive monitoring only
 {
 -If you press the t key while running iftop, you can switch to cumulative total bytes transferred instead of rates.
 -But you can press the S and D keys to toggle displaying source and destination ports:
@@ -25,7 +60,6 @@ q — quit
 }
 
 
-
 tools use to monitor network throughput
 {
 
@@ -34,8 +68,14 @@ sudo iftop -i enp0s3 -f "udp port 1234" // good one
 
 watch -n 1 netstat -su // to watch sumup report
 
+
+iperf3 // Active test: generate and measure traffic
+{
+
 iperf3 -s (on server)
 iperf3 -c server_ip -u -b 100M (on client)
+iperf3: benchmarking throughput with server/client model
+}
 
 Packet Monitoring Tools
 iftop: shows real-time traffic (like a bandwidth meter)
@@ -53,7 +93,7 @@ iptraf-ng, bmon, pktstat: per-port and per-protocol stats
 4. Traffic Generation Tools
 hping3: manual packets, good for testing
 
-iperf3: benchmarking throughput with server/client model
+
 
 nping: part of nmap, can send many UDP/TCP/ICMP packets
 
@@ -66,6 +106,8 @@ Traffic shaping, buffer overrun, and congestion control
 --------
 
 sudo hping3 --udp -p 5001 --flood <target_ip>
+
+hping3 --udp -p <target_port> -c 1 <target_IP>
 
 ip link // interfaces
 
@@ -184,7 +226,7 @@ ulimit -n 4096 // expand file descripor
 
 -----------------
 
-iperf clode connection after no data input
+iperf close connection after no data input
 
 {
 iperf -c 192.168.100.60 -u -p 1234 -l 1000 -t 10
