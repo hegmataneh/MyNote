@@ -1,14 +1,3 @@
---------
-
-benchmark of protocole bridge app
-
-store
-
-reciv time
-sent time
-reciv ack
-
-----------
 
 red button to cancel all operation
 

@@ -1,4 +1,16 @@
 
+اشکالی که مشاهده شد اینست که گویا ارتباط شبکه ای ماشین مجازی اشکالی دارد و باعث می شود که کندی مقطعی در دوره هایی ایجاد گردد و جریان دایم داده ایجاد نشود
+
+14040501
+
+------------
+
+Kusto Query Language // زبانی برای کویری گرفتن روی دیتاهای مختلف و البته مایکروسافتی
+
+14040431
+
+--------------
+
 auto complete
 {
 	vi /etc/inputrc // اینو حمیدی زد برای اینکه اوتو کامپلیت کامند های زده شده در لینوکس تکمیل شود	
@@ -10,6 +22,8 @@ python3 -m http.server 8000 // در فولدری که می خواهیم فایل
 wget http://192.168.100.59:8000/client2-disk1.vdi
 
 apt install ntpsec // time server
+
+ntpd
 
 nuttcp // active monitoring . van benchmark throughput in very high-speed UDP 
 {

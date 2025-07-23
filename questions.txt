@@ -1,3 +1,5 @@
+-----------
+
 in iPerf command By default, iPerf uses 1470 bytes for UDP payload (to avoid fragmentation over Ethernet with a standard 1500-byte MTU).
 
 fragmentation over Ethernet 
@@ -9,12 +11,6 @@ fragmentation over Ethernet
 در زبان c exceptio نداریم ولی سیگنال داریم. حالا چجوری کار میکنه
 
 --------
-
-راهی هست که برای include فایل های c در یکدیگر کاری کنیم syntzx highlighter درست کار کند
-
---------
-
-HPing
 
 سوال . udp انصالش چجوری است آیا یک سوکت درست می کنیم و ارسال م یکنیم اینها با هم ارتباطی ندارند.
 

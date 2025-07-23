@@ -1,7 +1,6 @@
 
-benchmark 1 second 
-benchmark 10 second 
-benchmark 40 second 
+وقتی پکت یو دی پی را نگیریم کار گیر می کند و ارسال متوقف می شود و پورت دیگر ارور می دهد
+
 
 tcp benchmark
 
@@ -10,6 +9,8 @@ packet lost
 packet lost udp
 
 install linux and vs code on it
+
+
 
 
 -------

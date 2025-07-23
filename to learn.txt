@@ -1,6 +1,10 @@
 linux
 
-htop ?
+Livelock
+
+vectorization techniques for performance
+
+scattering cpu affinity
 
 from dr.akbari https://refactoring.guru/
 
