@@ -1,3 +1,250 @@
+network monitoring
+{
+	nping // nping: part of nmap, can send many UDP/TCP/ICMP packets
+	{
+
+		sudo nping --udp -c 10000000 -q --rate 1000000 -p 1234 --data-length 1 192.168.100.60
+		{
+			send udp with max rate on port 1234 and data length 1
+		}
+
+		nping is included in the nmap package, so installing nmap will also install nping.
+		sudo apt install nmap
+
+		--data-length 1: Makes each packet exactly 1 byte of payload.
+		--rate 1000000: Sends at 1 million packets per second (upper limit; nping will send as fast as system allows).
+		-c 1000: Total of 1000 packets.
+		--udp: UDP mode.
+		-p 1234: Destination port.
+		--delay 100ms
+
+		sudo nping --udp -p 1234,1235,1236 -c 10 192.168.1.100 // Multiple destination ports
+		sudo nping --udp -p 1234 -c 5 -v 192.168.1.100    # Verbose
+		sudo nping --udp -p 1234 -c 5 -q 192.168.1.100    # Quiet
+		sudo nping --udp -c 1000 --rate 1000000 -p 1234 --data-length 1 192.168.1.100
+	}
+
+	tshark
+	{
+		tshark -i enp0s3 -f "udp dst port 1234" -T fields -e frame.len // o calculate the frame size of UDP packets destined to port 1234 on interface enp0s3 using tshark
+
+		sudo tshark -i enp0s3 -f "udp" -Y "udp.port == 1234" -x // listen to port and get udp packet from port with interface and dump raw data
+		tshark -i enp0s3 -Y "udp.port == 1234" -T fields -e frame.len // How to get whole packet size with tshark
+		tshark -i enp0s3 -Y "udp.port == 1234" -T fields -e udp.length // Using tshark to get total UDP payload bytes on port 1234
+		tshark -i enp0s3 -Y "udp.port == 1234" -T fields -e frame.len | awk '{sum += $1} END {print sum}' // Sum total bytes of all captured packets
+
+		wireshark/tshark // Passive monitoring only
+		{
+			sudo apt install wireshark tshark
+
+			sudo tshark -i <interface> -f "udp" -Y "" // Basic tshark command to capture UDP packets
+			sudo tshark -i <interface> -f "udp" -Y "" -x // To see raw packet data in hex/ascii format
+			sudo tshark -i <interface> -f "udp" -Y "" -V // To see detailed packet structure
+			sudo tshark -i enp0s3 -f "udp" -Y " == 1234 && ip.addr == 192.168.1.100" -w udp_capture.pcap // Save to file and read later
+
+			tshark -i enp0s3 -f "udp dst port 1234" -T fields -e frame.len
+
+			-c <count>: Capture only <count> packets then stop
+			-T fields -e <field>: Output specific fields only
+			-l: Flush output after each packet (good for real-time viewing)
+		}
+
+	}
+
+	hping3
+	{
+		hping3 --udp -p 1234 -d 1 -E /dev/zero --count 1 192.168.1.10 // send one UDP packet with a 1-byte payload to port 1234 using hping3 with zero byte value
+		{
+			--udp — send UDP packets
+			-p 1234 — destination port 1234
+			-d 1 — payload size 1 byte
+			-E /dev/zero — read payload from /dev/zero (all zero bytes)
+			--count 1 — send exactly 1 packet
+			<target_ip> — replace with the target IP address you want to send to
+			--flood: Send packets as fast as possible.
+			-c 1000: Send exactly 1000 packets.
+		}
+
+		sudo hping3 -1 -c 1 <target_ip> // send a single ICMP echo request (ping) using hping3
+		{
+			-1: ICMP mode (like ping)
+
+			-c 1: send 1 packet only
+
+			<target_ip>: replace with the IP address you want to ping
+		}
+
+		hping3 -1 -c 1 192.168.100.200  -- ping icmp one time to ip
+
+		Traffic Generation Tools hping3: manual packets, good for testing
+
+		sudo hping3 --udp -p 5001 --flood <target_ip>
+
+		hping3 --udp -p <target_port> -c 1 <target_IP>
+
+		sudo apt install hping3
+	}
+
+	tcpdump
+	{
+
+		tcpdump -i eth0 -c 10000 -n -q udp and port 12345
+		{
+			-c 10000 → Capture exactly 10,000 packets, then exit.
+		}
+
+		tcpdump -n -q -i eth0 udp and port 12345 2>/dev/null | wc -l
+		{
+			-n → No DNS lookup (faster).
+			-q → Quick output (less verbose).
+			-i eth0 → Interface to listen on.
+			udp and port 12345 → Example filter (change to your need).
+			2>/dev/null → Remove stderr noise.
+			| wc -l → Count the number of matching packets.
+		}
+
+		timeout 10 tcpdump -i eth0 -n -q udp and port 12345 2>/dev/null | wc -l
+		{
+			tcpdump -i enp0s3 -n -q -v udp and port 1234 > /dev/null
+
+			tcpdump -i enp0s3 -n -q -l udp and port 1234
+			tcpdump -i enp0s3 -n -q -v udp and port 1234 > /dev/null
+			timeout 30 tcpdump -i enp0s3 -n -q -v udp and port 1234 > /dev/null
+			tcpdump -i enp0s3 udp and port 1234 -w capture.pcap
+		}
+		{
+			{
+				Counts number of UDP packets received on port 12345 over 10 seconds.
+				timeout ensures it stops cleanly.
+				wc -l gives count only, with almost no overhead.
+			}
+		}
+
+		tcpdump: captures raw packets
+
+		tcpdump udp dst port 1234
+
+		tcpdump udp dst port 1234
+	}
+
+	iftop / iptraf / bmon // Show real-time bandwidth usage per connection / interface.
+
+	iftop // Passive monitoring only
+	{
+		-If you press the t key while running iftop, you can switch to cumulative total bytes transferred instead of rates.
+		-But you can press the S and D keys to toggle displaying source and destination ports:
+
+		Press ? in iftop to see all the key bindings:
+		t — cycles through 2/10/40 second totals / rates
+		T — toggles total / cumulative mode
+		S — toggle source port
+		D — toggle destination port
+		f — set filter
+		n — toggle DNS resolution
+		h — toggle hostname display
+		q — quit
+	}
+
+	netcat / nc
+	{
+
+		// send udp packet throw port 1234 with netcat
+		echo "hello" | nc -u 127.0.0.1 1234
+
+		sudo apt-get install netcat-traditional
+
+	}
+
+	tools use to monitor network throughput
+	{
+
+		sudo pktstat -i enp0s3 // to more check and use
+		sudo iftop -i enp0s3 -f "udp port 1234" // good one
+
+		watch -n 1 netstat -su // to watch sumup report
+
+		pcap file (packet capture file).
+
+		iperf3 // Active test: generate and measure traffic
+		{
+			// iperf3 doesn't support setting an exact packet count directly.
+
+			iperf3 -s (on server)
+			iperf3 -c server_ip -u -b 100M (on client)
+			iperf3: benchmarking throughput with server/client model
+
+			iperf3 -c <server_ip> -u -l 1 -b 0 -n 1000000 //  send 1 million UDP packets with 1-byte payloads as a flood
+		}
+
+		Packet Monitoring Tools
+		iftop: shows real-time traffic (like a bandwidth meter)
+
+		nload: shows bandwidth per interface (not port-level)
+
+		wireshark: GUI packet analyzer
+
+		netstat / ss: shows open ports and connections
+
+		iptraf-ng, bmon, pktstat: per-port and per-protocol stats
+
+		Traffic shaping, buffer overrun, and congestion control
+
+	}
+
+	nuttcp // active monitoring . van benchmark throughput in very high-speed UDP 
+	{
+	}
+
+	iperf
+	{
+		iperf close connection after no data input
+
+		{
+			iperf -c 192.168.100.60 -u -p 1234 -l 1000 -t 10
+			make udp packet in client mode to ip to port with packet size with duration 10
+		}
+
+		{
+
+			iperf زارتی پورت را می بندد
+
+			iperf -s -u -p 1234 // udp
+			iperf -s -p 4321 // tcp
+
+			listen on udp port in server mode on port 1234
+		}
+
+		sudo apt-get install iperf
+	}
+
+	nc -u -l // show packet received
+
+	//  iterativly do one thing with interval
+	{
+		watch -n 1 netstat -su // هر ثانیه مثلا یک دستور را اجرا می کند و نتیجه را می نویسد
+	}
+
+	netstat -su // Overrun / dropped packets
+
+	show me sample about tc command in linux
+
+	to monitore tcp and udp socket
+
+	Linux tc (Traffic Control) & ss (Socket Statistics)
+
+	iperf3, netstat -su (UDP stats), nload (bandwidth monitor
+
+	The nload command is a Linux utility used to monitor network traffic and bandwidth usage in real-time.
+
+}
+
+to set timezone
+{
+	timedatectl list-timezones | grep Tehran // List available timezones
+	sudo timedatectl set-timezone Asia/Tehran // Set the timezone:
+	timedatectl // Verify the change:
+}
+
 linux hack . to get report of history of cmd
 {
 	do: export HISTTIMEFORMAT='%F %T ' // to make history by timestamp
@@ -6,7 +253,6 @@ linux hack . to get report of history of cmd
 	do: history | grep "$(date '+%F')" | sort -k2,3 // to sort by
 	do: history -c && > ~/.bash_history && history -w // to clear history
 }
-
 
 in midnight commander
 {
@@ -52,7 +298,6 @@ get from nginx
 	Then reload nginx:
 	sudo systemctl reload nginx
 
-
 	to be insure of nginx
 	sudo systemctl status nginx
 
@@ -72,9 +317,7 @@ get from nginx
 	| 404 Not Found        | Check filename and nginx root path                       |
 	| Directory not listed | Enable `autoindex on;` in config                         |
 
-
 }
-
 
 for /l %i in (1,1,10) do (
     echo Download %i...
@@ -82,50 +325,48 @@ for /l %i in (1,1,10) do (
     timeout /nobreak /t 5 >nul
 )
 
-
 try with another file server beside python3
-
-sudo apt update && sudo apt install samba
-
-sudo apt install smbclient
-
-to test samba 
-smbclient -L //192.168.1.100 -N
-
-to configuare samba
 {
-	sudo nano /etc/samba/smb.conf
-	sudo cp /etc/samba/smb.conf /etc/samba/smb.conf.backup
-	sudo nano /etc/samba/smb.conf
+	sudo apt update && sudo apt install samba
+
+	sudo apt install smbclient
+
+	to test samba 
+	smbclient -L //192.168.1.100 -N
+
+	to configuare samba
+	{
+		sudo nano /etc/samba/smb.conf
+		sudo cp /etc/samba/smb.conf /etc/samba/smb.conf.backup
+		sudo nano /etc/samba/smb.conf
+		[SharedFolder]
+		   path = /home/to_test_network
+		   browseable = yes
+		   read only = no
+		   guest ok = yes
+		   force user = nobody
+	}
+
+	Restart Samba Services
+	sudo systemctl restart smbd
+	sudo systemctl restart nmbd
+
+	Adjust Firewall (if applicable)
+	sudo ufw allow samba
+
+	Set up Samba User Authentication
+	Add a user to Samba (must exist as Linux user):
+	sudo smbpasswd -a yourusername
+	Modify share config:
 	[SharedFolder]
-	   path = /home/to_test_network
+	   path = /srv/samba/shared
 	   browseable = yes
 	   read only = no
-	   guest ok = yes
-	   force user = nobody
+	   guest ok = no
+	   valid users = yourusername
 }
 
-Restart Samba Services
-sudo systemctl restart smbd
-sudo systemctl restart nmbd
-
-Adjust Firewall (if applicable)
-sudo ufw allow samba
-
-
-Set up Samba User Authentication
-Add a user to Samba (must exist as Linux user):
-sudo smbpasswd -a yourusername
-Modify share config:
-[SharedFolder]
-   path = /srv/samba/shared
-   browseable = yes
-   read only = no
-   guest ok = no
-   valid users = yourusername
-
 ---
-
 
 to download 0 times file from file server
 {
@@ -140,7 +381,7 @@ to download 0 times file from file server
 		wget http://192.168.100.60:8000/1Gtest.tst -O 1Gtest_%i.tst 2>&1 | findstr /C:"saved" /C:"100%" >> result.txt
 		timeout /nobreak /t 10 >nul
 	)
-	
+
 	// download but does not write it to disk of file system
 	{
 		for /l %i in (1,1,10) do @wget http://192.168.100.60:8000/1Gtest.tst -O NUL 2>&1 | findstr /C:"100%" /C:"saved" >> result.txt
@@ -158,19 +399,16 @@ to download file in windows from file server in virtual machine
 		[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; `
 		iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
 
-
 		then restart windows cmd
 
 		choco install wget -y
 		choco install aria2 -y
-
 
 		then
 
 		powershell -ExecutionPolicy Bypass -File "d:\My report\project 3\wc.ps1"
 	}
 }
-
 
 // slow version of get file from network
 {
@@ -190,12 +428,11 @@ to download file in windows from file server in virtual machine
 
 		$start = Get-Date
 		Invoke-WebRequest -Uri $url -OutFile $output
-		
+
 		or
-		
+
 		curl -s -L $url -o $output
 
-		
 		$end = Get-Date
 
 		$duration = ($end - $start).TotalSeconds
@@ -221,7 +458,6 @@ to download file in windows from file server in virtual machine
 	# $results | Export-Csv -Path "download_results.csv" -NoTypeInformation
 
 }
-
 
 to calculate file copy duration and mean bitrate
 {
@@ -258,7 +494,6 @@ to calculate file copy duration and mean bitrate
 	while it has x factor in ls it has permission to execute
 }
 
-
 14040504
 
 ----------
@@ -289,27 +524,6 @@ apt install ntpsec // time server
 
 ntpd
 
-nuttcp // active monitoring . van benchmark throughput in very high-speed UDP 
-{
-}
-
-iftop / iptraf / bmon // Show real-time bandwidth usage per connection / interface.
-
-wireshark/tshark // Passive monitoring only
-{
-	sudo apt install wireshark tshark
-
-	sudo tshark -i <interface> -f "udp" -Y "udp.port == <port_number> && ip.addr == <ip_address>" // Basic tshark command to capture UDP packets
-	sudo tshark -i <interface> -f "udp" -Y "udp.port == <port_number> && ip.addr == <ip_address>" -x // To see raw packet data in hex/ascii format
-	sudo tshark -i <interface> -f "udp" -Y "udp.port == <port_number> && ip.addr == <ip_address>" -V // To see detailed packet structure
-	sudo tshark -i eth0 -f "udp" -Y "udp.port == 1234 && ip.addr == 192.168.1.100" -w udp_capture.pcap // Save to file and read later
-	tshark -r udp_capture.pcap -V -x // To read the saved file:
-
-	-c <count>: Capture only <count> packets then stop
-	-T fields -e <field>: Output specific fields only
-	-l: Flush output after each packet (good for real-time viewing)
-}
-
 14040428
 
 ------------
@@ -319,74 +533,11 @@ python3 -m http.server 8000
 
 passworless sudo super user
 
-
-iftop // Passive monitoring only
-{
-	-If you press the t key while running iftop, you can switch to cumulative total bytes transferred instead of rates.
-	-But you can press the S and D keys to toggle displaying source and destination ports:
-
-	Press ? in iftop to see all the key bindings:
-	t — cycles through 2/10/40 second totals / rates
-	T — toggles total / cumulative mode
-	S — toggle source port
-	D — toggle destination port
-	f — set filter
-	n — toggle DNS resolution
-	h — toggle hostname display
-	q — quit
-}
-
-
-tools use to monitor network throughput
-{
-
-	sudo pktstat -i enp0s3 // to more check and use
-	sudo iftop -i enp0s3 -f "udp port 1234" // good one
-
-	watch -n 1 netstat -su // to watch sumup report
-
-
-	iperf3 // Active test: generate and measure traffic
-	{
-		iperf3 -s (on server)
-		iperf3 -c server_ip -u -b 100M (on client)
-		iperf3: benchmarking throughput with server/client model
-	}
-
-	Packet Monitoring Tools
-	iftop: shows real-time traffic (like a bandwidth meter)
-
-	nload: shows bandwidth per interface (not port-level)
-
-	tcpdump: captures raw packets
-
-	wireshark: GUI packet analyzer
-
-	netstat / ss: shows open ports and connections
-
-	iptraf-ng, bmon, pktstat: per-port and per-protocol stats
-
-	4. Traffic Generation Tools
-	hping3: manual packets, good for testing
-
-	nping: part of nmap, can send many UDP/TCP/ICMP packets
-
-	Traffic shaping, buffer overrun, and congestion control
-
-}
-
 14040425
 
 --------
 
-sudo hping3 --udp -p 5001 --flood <target_ip>
-
-hping3 --udp -p <target_port> -c 1 <target_IP>
-
 ip link // interfaces
-
-nc -u -l // show packet received
-
 
 network namespace
 sudo ip netns add testns // make namespace like new env for testing network
@@ -396,11 +547,6 @@ sudo ip netns delete testns // delete namespace
 ip netns list // list namespaces
 
 ip netns identify $$ // test inside namespace
-
-//  iterativly do one thing with interval
-{
-	watch -n 1 netstat -su // هر ثانیه مثلا یک دستور را اجرا می کند و نتیجه را می نویسد
-}
 
 14040424
 
@@ -415,16 +561,12 @@ socklen_t errlen = sizeof(error);
 getsockopt(udp_fd, SOL_SOCKET, SO_ERROR, &error, &errlen);
 printf("Socket error: %d\n", error);
 
-
-netstat -su // Overrun / dropped packets
-
 14040423
 
 -----------------
 در ubuntu فولد را با یوزر su ساختم پس یوزر محسن دسترسی بهش نداشت پس با دستور زیر آنرا بهش دسترسی دادم
 
 sudo chown -R myuser:myuser /home/myuser
-
 
 on windows type : route
 route add 192.168.100.0 mask 255.255.255.0 <gateway-on-192.168.1.x>
@@ -438,7 +580,6 @@ library dependency -> ncurses
 c/c++ additional options -> -D__COMPILE 
 on ubuntu ip addr // , find the interface names. On Ubuntu:
 ifconfig
-
 
 14040420
 
@@ -466,10 +607,8 @@ in dep file -> #if !defined(__COMPILE) && defined(__PROJECT_NAME__) && __PROJECT
 
 یک چیزی دیشب یاد گرفتم اینکه اگر از توابع غیر سکیور استفاده کنیم این امکان برای هکر ها ایجاد می شود که با استفاده از buffer over run یا یک همچین چیزی از محدوده حافظه قاب لدسترسی در کد خارج شوند و عملکرد جدیدی به کد اضافه کنند و رفتار برنامه را خارج از چارچوبی که تعیین شده ایجاد کنند
 
-
 sudo apt update
 sudo apt install libncurses5-dev libncursesw5-dev
-
 
 use ncurses for TUI (text user interface)
 
@@ -497,38 +636,6 @@ ulimit -n 4096 // expand file descripor
 14040408
 
 -----------------
-
-iperf close connection after no data input
-
-{
-	iperf -c 192.168.100.60 -u -p 1234 -l 1000 -t 10
-	make udp packet in client mode to ip to port with packet size with duration 10
-}
-
-{
-
-	iperf زارتی پورت را می بندد
-
-	iperf -s -u -p 1234 // udp
-	iperf -s -p 4321 // tcp
-
-	listen on udp port in server mode on port 1234
-}
-
-tcpdump udp dst port 1234
-
-
-sudo apt-get install iperf
-
-show me sample about tc command in linux
-
-to monitore tcp and udp socket
-
-Linux tc (Traffic Control) & ss (Socket Statistics)
-
-iperf3, Wireshark, netstat -su (UDP stats), nload (bandwidth monitor
-
-The nload command is a Linux utility used to monitor network traffic and bandwidth usage in real-time.
 
 14040407
 
@@ -567,7 +674,6 @@ typedef void * va_list;
 
 that do intellisence compiler know type
 
-
 14040404
 --------------------
 
@@ -575,7 +681,6 @@ add
 d:\workplace\config\.gitattributes
 d:\workplace\config\.gitignore
 to .git folder to ignore non usable file to staged and push into git
-
 
 مجددا رسیدیم به زبان زیبای سی که الکی بامبول در میاره و دوباره ریبیلد گاهی خطا رو درست میکنه و همه چیز رو ببندیم و مجدد باز کنیم
 
@@ -596,23 +701,13 @@ sudo mount -t vboxsf workplace /home/mohsen/workplace
 
 ----------------
 
-// send udp packet throw port 1234 with netcat
-echo "hello" | nc -u 127.0.0.1 1234
-
-sudo apt-get install netcat-traditional
-
-
 read() is a general file I/O function, while recvfrom() is specifically for socket communication.
-
 
 recvfrom() provides the source address of the incoming data, which is crucial for connectionless protocols where the sender's address is not implicitly known through a prior connection. read() does not provide this information.
 
-
 A C language TCP server can accept connections on multiple ports by creating and managing multiple listening sockets, each bound to a different port. A single TCP socket cannot listen on multiple ports simultaneously
 
-
 epoll is a Linux-specific API that offers better scalability for a large number of file descriptors, especially in high-performance network servers.
-
 
 --------
 
@@ -636,21 +731,17 @@ git
 	cd MyProject
 	git init
 
-
 	git config --global user.name 'mohsen'
 	git config --global user.email "mohsensherkatmasoum@gmail.com"
 
-
 	ou can check what’s currently configured with:
 	git config --global --list
-
 
 	git ls-files // get all tracked files
 
 	git log --name-only // To see which files were modified in each commit
 
 	git add "page*" // just check in files started with page...
-
 
 	tracking new file
 	git add -A // add all files گیت فایل را در نظر می گیرد
@@ -666,7 +757,6 @@ git
 
 	git diff HEAD // مقایسه با آخرین ورژن
 
-
 	وقتی یک فایل تغییر می کند آنرا به استیج منتقل می کنیم بعد وقتی کامیت می کنیم به ریپوزتوری اضافه می شود
 
 	یک مرحله استیج اضافه کرده که یعنی فقط چیز هایی که قرار است کامیت شود انتخاب شود یک اضافه کردن یک مرحله ی جدید برای جلوگیری از کامیت و خراب شدن موارد خراب اضافه کرده
@@ -677,7 +767,6 @@ git
 
 	git restore "file" // ignore changes to file and replace with commited version from source control
 
-
 	git reset "file" // از استیج خارج می کند
 
 	git checkout -- "file" // آخرین ورژن فایل را دریافت می کند
@@ -687,7 +776,6 @@ git
 	git branch // شاخه های پروژه نمایش داده می شود
 
 	git branch sth. // شاخه جدیدی اضافه می کند با نام مشخص که می شود روی اون شاخه کاری رو ادامه داد و بعدا با مین یا مستر مرج کرد
-
 
 	git checkout sth. // برنچ با نام خاصی رو می کشد بیرون یا اماده تغییر می کند
 	و در واقع این شاخه اماده تغییر می شود
@@ -708,7 +796,6 @@ git
 
 	git rm file // remove from git branch and file system
 
-
 	یک نکته مهم اینه که هر کامیت یک کاری بکند
 
 	یک چیز جالب وقتی یک فایل را در برنچی پاک می کنیم و تا وقتی که در ان برنچ کامیت نکردیم در بقیه برنچ ها هم اون فایل دیگر در فایل سیستم مشاهده نمی شود ولی به محض کامیت در یک برنچ دیگر برنچ ها می فهمند که اون تغییر در دیگر برنچ است فلذا اون فایل دلیت شده در اون یکی برنچ قابل مشاهده است
@@ -717,26 +804,20 @@ git
 
 	git branch -d sth. // delete some branch
 
-
-
 	git clone remoteaddrs
 
 	نسخه اصلی
 	origin
 	است 
 
-
 	git push origin master // send taghirat to branch origin github repository from main branch in local cloned repository
 
 	git pull origin main // from github to local repository
-
 
 	git remote add origin addrss // یک ادرس ریموت برای اوریجین یعنی نسخه تخت گیت هاب چیزی که ما داریم اضافه می کند
 	حالا اینجا معنی میده که بگیم
 	git push -u  origin master
 	که یعنی داره میگه حالا که برای مستر اوریجین تعیین کریم بیا مستر رو بفرست روی گیت هاب. نگکته باحال اینست که می شود برای یک مستر یا مین چند ریموت تعیین کرد که یعنی چند جا چک این کن که امنیت حفظ شود
-
-
 
 	CONFLICT (content): Merge conflict in simulator/s4u-activity-testany.cpp
 	Automatic merge failed; fix conflicts and then commit the result.
@@ -753,18 +834,15 @@ git
 
 	خاصیتش اینست که میتونیم برنامه را نسخه دار کنیم یعنی بگیم نسخه فلان را برای ما الان آماده کن و ببینیمش یا برنچش کن برای ما که اونرو ادامه بدیم
 
-
 	تگ در حالت عادی روی گیت هاب پوش نمی شود ولی می توان گفت بزرو پوشش کن
 
 	git push origin v1.8  // نسخه مشخصی رو بفرست سمت ریموت
 	git push origin --tags // همه تگ ها بفرست سمت ریموت
 
-
 	اینجوری می شود یک ورژن مشخص را برای ادیت به عنوان هد قرار داد
 	git checkout v2.0
 	البته درستش اینه که اگر می خواهیم روی یک ورژن قدیمی کار کنیم یک برنچ بسازیم و اونرو ادامه بدیم
 	git checkout -b branch_name
-
 
 	----- 010
 
@@ -791,7 +869,6 @@ git
 	با زدن دستور استارت و اینکه الان اوضاع خرابه و با پیشنهاد گیت که ورژن را ÷یپشنهاد میده میشه فهمید کدام ورژن خراب شده
 
 	------ 012
-
 
 	pull request
 
@@ -839,7 +916,6 @@ https://hostman.com/tutorials/how-to-install-and-configure-ssh-on-ubuntu-22-04/
 
 sudo nano /etc/netplan/01-netcfg.yaml
 
-
 intellisence 
 
 Install Necessary Tools on Linux
@@ -862,7 +938,6 @@ Select your Linux connection from the list.
 Click Update to download the headers from the remote system.
 devblogs.microsoft.com
 
-
 Include Remote Headers in Project Settings
 Ensure the remote headers are included in your project's include paths:
 
@@ -883,8 +958,6 @@ diagnose of of domain nmap -O <Domain Name>
 
 inet-utils-traceroute
 
-sudo apt install hping3
-
 iptables -t nat -L
 
 sudo sysctl -a | grep broad
@@ -895,8 +968,6 @@ history of shell command
 history | awk '{$1=""; print $0}' | sed 's/^ *//' | sort | uniq
 
 sudo apt install openssh-server
-
-hping3 -1 -c 1 192.168.100.200  -- ping icmp one time to ip
 
 sudo adduser mohsen
 
@@ -939,7 +1010,7 @@ with attribute -Wno-unused-function in
 project properties
 	c/c++
 		command line
-		
+
 --------------
 
 📜 Major versions of C (chronological order):
@@ -969,7 +1040,7 @@ in code
     #else
         printf("C89/C90\n");
     #endif
-	
+
 ---------------
 
 هر وقت تغییری در فایل های 
@@ -993,12 +1064,10 @@ find /usr/include -name string.h
 to check function
 grep strdup /usr/include/string.h
 
-
 View default include search paths for GCC
 echo | gcc -E -Wp,-v -
 
 man command in Linux is used to display the user manual of any command that we can run on the terminal
-
 
 مشکلی که سر تابع
 strdup
@@ -1017,7 +1086,6 @@ But also note: strdup is not part of ANSI C (C89), but it is available in POSIX.
 #pragma GCC diagnostic ignored "-Wsign-conversion"
 #pragma GCC diagnostic push
 #pragma GCC diagnostic pop
-
 
 https://gcc.gnu.org/onlinedocs/gcc/Diagnostic-Pragmas.html
 
@@ -1045,10 +1113,6 @@ CMake is a cross-platform build system generator
 
 اگر بخواهم از تابع fork برای هندل حجم کار استفاده کنم باید حواسم به محدودیت های تعداد برای هر بوزر و کل سیستم باشد
 
-
 وقتی یک cross platform جدید می سازیم پروژه های قدیمی هم کانفیگش خراب می شود و روی ip جدیده قرار می گیرد و باید دستی درست شود
-
-
-tcpdump udp dst port 1234
 
 --------

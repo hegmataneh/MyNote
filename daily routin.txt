@@ -6,4 +6,15 @@ daily routin
 4- sudo mount -t vboxsf my_project /home/my_projects
 5- تعیین غذاب هفتگی
 6- کنترل فیش حقوقی سر ماه
+7- 
 
+title SSH to 192.168.100.59
+ssh mohsen@192.168.100.59
+
+title SSH to 192.168.100.60
+ssh mohsen@192.168.100.60
+
+title SSH to 192.168.100.61
+ssh mohsen@192.168.100.61
+
+8-

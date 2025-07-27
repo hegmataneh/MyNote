@@ -1,35 +1,149 @@
-linux
+to learn
+{
 
-Livelock
+	linux
 
-vectorization techniques for performance
+	Livelock
 
-scattering cpu affinity
+	vectorization techniques for performance
 
-from dr.akbari https://refactoring.guru/
+	scattering cpu affinity
 
-TUI (text user interface)
-lib TUI check
+	from dr.akbari https://refactoring.guru/
 
-If you don’t want to code all in C, you can make your C app output data and pipe it to:
+	TUI (text user interface)
+	lib TUI check
 
-
-از نظر نوع و تکنیک، حملات “UDP NULL” با سهم ۵۹.۵۳٪ غالب هستند. پس از آن “DNS Amplification” با حدود ۱۵٪ و “TCP Malformed” با ۱۴٪ در جایگاه‌های بعدی قرار دارند. حملاتی با تکنیک‌هایی نظیر ACK Flood، حمله ترکیبی بر‌اساس DNS، و سایر روش‌ها نیز به ترتیب مطرح هستند. این تنوع روش‌ها نشان می‌دهد که مهاجمان تلاش داشته‌اند از انواع مختلفی از حملات برای ایجاد اختلال استفاده کنند.
-
-
-hazard pointer
-
-hazard structure
-
-atomic variable
-
-synchronize 
-
-hyper thread
-
-lockless algorithm
+	If you don’t want to code all in C, you can make your C app output data and pipe it to:
 
 
+	از نظر نوع و تکنیک، حملات “UDP NULL” با سهم ۵۹.۵۳٪ غالب هستند. پس از آن “DNS Amplification” با حدود ۱۵٪ و “TCP Malformed” با ۱۴٪ در جایگاه‌های بعدی قرار دارند. حملاتی با تکنیک‌هایی نظیر ACK Flood، حمله ترکیبی بر‌اساس DNS، و سایر روش‌ها نیز به ترتیب مطرح هستند. این تنوع روش‌ها نشان می‌دهد که مهاجمان تلاش داشته‌اند از انواع مختلفی از حملات برای ایجاد اختلال استفاده کنند.
 
-redis as in memory database
 
+	hazard pointer
+
+	hazard structure
+
+	atomic variable
+
+	synchronize 
+
+	hyper thread
+
+	lockless algorithm
+
+	redis as in memory database
+
+}
+
+questions:
+{
+
+	-----------
+
+	in iPerf command By default, iPerf uses 1470 bytes for UDP payload (to avoid fragmentation over Ethernet with a standard 1500-byte MTU).
+
+	fragmentation over Ethernet 
+
+	یعنی چی
+
+	--------
+
+	در زبان c exceptio نداریم ولی سیگنال داریم. حالا چجوری کار میکنه
+
+	--------
+
+	سوال . udp انصالش چجوری است آیا یک سوکت درست می کنیم و ارسال م یکنیم اینها با هم ارتباطی ندارند.
+
+	آیا میشه در سطح لایه های شبکه کد نویسی کرد یعنی کرنل را دور زد
+
+	سوکت باز می کنیم از کدام لایه شبکه شروع می کند استفاده کردن در ویندوز و لینوکس
+
+	یک توضیحی که یک سوکت باز کردن و مراحل آن روی عملکرد لایه های چگونه انجام می شود
+
+}
+
+
+ideas
+{
+	
+	red button to cancel all operation
+
+	load prev settings
+
+	echo current using setting
+
+	testebility
+
+	nullable
+
+	empty argument
+
+	crc changes
+
+	check struct with just one nested struct has sizeof() inner struct only not more
+
+	donot make fragment memory allocation
+
+	---------
+
+	to serach/Reasearch:
+
+	RTT 70 mili second yani chi
+	google analytics
+
+
+	gdb version
+	cmake  
+	what s gcc and difference to g++
+	powershell
+	CLang
+
+
+	SOLID principles
+	Build systems & dependency management (e.g., Maven, Gradle, CMake)
+	IntelliJ
+	CI/CD systems
+
+
+	🔧 9. Diagnostics and Monitoring Tools
+	Tools: , traceroute, netstat, wireshark, nslookup, dig, nmap, curl
+
+	Why: Troubleshooting and verifying connectivity are core skills.
+
+
+	🔄 10. Reverse Proxies and Load Balancers
+	Concepts: Nginx, HAProxy, Layer 4 vs Layer 7 balancing
+
+	Why: Needed for scaling, SSL termination, and request routing in web apps.
+
+	Concepts: SNAT, DNAT, PAT, port mapping
+
+	DNS resolution failure
+
+	Port conflicts
+
+	Firewall blocking
+
+	NAT loopback issues
+
+	MTU mismatch or packet fragmentation
+
+	Rate limiting and throttling
+
+	Network Performance Issues
+
+
+	Issue	Description
+
+	Latency	Time delay between sender and receiver
+
+	Packet Loss	Packets get lost due to overload, interference, or bad routing
+	Bandwidth Saturation	Network link is constantly used to max capacity
+	Bufferbloat	Excessive buffering causes delay (common in routers)
+
+	Every network device (routers, switches, NICs, OS sockets) uses buffers.
+
+	در خصوص عینک موضوع blucut و bluecontrol تحقیق شود گویا بلو کنترل بهتر عمل می کند
+
+}
