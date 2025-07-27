@@ -1,3 +1,267 @@
+linux hack . to get report of history of cmd
+{
+	do: export HISTTIMEFORMAT='%F %T ' // to make history by timestamp
+	do: source ~/.bashrc // after export bala
+	do: history | sort // sorted history
+	do: history | grep "$(date '+%F')" | sort -k2,3 // to sort by
+	do: history -c && > ~/.bash_history && history -w // to clear history
+}
+
+
+in midnight commander
+{
+	F9 // menus
+	F10 // exit
+}
+
+to save current working dir in linux for mc(midnight commander)
+{
+	nano ~/.bashrc // to edit
+	add alias mc='mc -P ~/.mc_saved_pwd && [ -f ~/.mc_saved_pwd ] && cd "$(cat ~/.mc_saved_pwd)" && rm -f ~/.mc_saved_pwd' // at the end of file
+	source ~/.bashrc // to reload file
+}
+
+14040505
+
+---------------
+
+get from nginx
+{
+
+	sudo apt update
+	sudo apt install nginx
+
+	edit /etc/nginx/sites-available/default
+	{
+		server {
+			listen 80 default_server;
+			listen [::]:80 default_server;
+
+			root /home/yourname/shared;
+			index index.html;
+
+			server_name _;
+
+			location / {
+				autoindex on;     # enable folder listing
+				try_files $uri $uri/ =404;
+			}
+		}
+	}
+
+	Then reload nginx:
+	sudo systemctl reload nginx
+
+
+	to be insure of nginx
+	sudo systemctl status nginx
+
+	if not running
+	sudo systemctl start nginx
+
+	Give Nginx access rights:
+	sudo chmod -R o+r /home/yourname/shared
+
+	Save and reload:
+	sudo nginx -t && sudo systemctl reload nginx
+
+	| Problem              | Solution                                                 |
+	| -------------------- | -------------------------------------------------------- |
+	| Connection Refused   | Check server firewall: `sudo ufw allow 80/tcp`           |
+	| 403 Forbidden        | Check permissions: `chmod -R o+rx /home/yourname/shared` |
+	| 404 Not Found        | Check filename and nginx root path                       |
+	| Directory not listed | Enable `autoindex on;` in config                         |
+
+
+}
+
+
+for /l %i in (1,1,10) do (
+    echo Download %i...
+    wget @wget http://192.168.100.60/1Gtest.tst -O 1Gtest_%i.tst 2>&1 | findstr /C:"saved" /C:"100%" >> result.txt
+    timeout /nobreak /t 5 >nul
+)
+
+
+try with another file server beside python3
+
+sudo apt update && sudo apt install samba
+
+sudo apt install smbclient
+
+to test samba 
+smbclient -L //192.168.1.100 -N
+
+to configuare samba
+{
+	sudo nano /etc/samba/smb.conf
+	sudo cp /etc/samba/smb.conf /etc/samba/smb.conf.backup
+	sudo nano /etc/samba/smb.conf
+	[SharedFolder]
+	   path = /home/to_test_network
+	   browseable = yes
+	   read only = no
+	   guest ok = yes
+	   force user = nobody
+}
+
+Restart Samba Services
+sudo systemctl restart smbd
+sudo systemctl restart nmbd
+
+Adjust Firewall (if applicable)
+sudo ufw allow samba
+
+
+Set up Samba User Authentication
+Add a user to Samba (must exist as Linux user):
+sudo smbpasswd -a yourusername
+Modify share config:
+[SharedFolder]
+   path = /srv/samba/shared
+   browseable = yes
+   read only = no
+   guest ok = no
+   valid users = yourusername
+
+---
+
+
+to download 0 times file from file server
+{
+	for /l %i in (1,1,10) do @wget http://192.168.100.60:8000/1Gtest.tst -O 1Gtest_%i.tst 2>&1 | findstr /C:"100%" /C:"saved" >> result.txt
+
+	it wget file in 10 times and just write two line of result in result file
+
+	with delay deacreas of result soped
+
+	for /l %i in (1,1,10) do (
+		echo Download %i...
+		wget http://192.168.100.60:8000/1Gtest.tst -O 1Gtest_%i.tst 2>&1 | findstr /C:"saved" /C:"100%" >> result.txt
+		timeout /nobreak /t 10 >nul
+	)
+	
+	// download but does not write it to disk of file system
+	{
+		for /l %i in (1,1,10) do @wget http://192.168.100.60:8000/1Gtest.tst -O NUL 2>&1 | findstr /C:"100%" /C:"saved" >> result.txt
+	}
+}
+
+to download file in windows from file server in virtual machine
+{
+
+	to use wget or aria2c to get faster because IDM and explorer downloader get file faster i should use better tools
+	{
+		first install choco package manager
+
+		Set-ExecutionPolicy Bypass -Scope Process -Force; `
+		[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; `
+		iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+
+
+		then restart windows cmd
+
+		choco install wget -y
+		choco install aria2 -y
+
+
+		then
+
+		powershell -ExecutionPolicy Bypass -File "d:\My report\project 3\wc.ps1"
+	}
+}
+
+
+// slow version of get file from network
+{
+	# Configuration
+	$url = "http://192.168.100.60:8000/1Gtest.tst"   # Replace with your desired file URL
+	$output = "c:\Users\Highcom\Downloads\1Gtest.tst"
+	$results = @()
+
+	for ($i = 1; $i -le 10; $i++)
+	{
+		Write-Host "Download Run #$i"
+
+		# Delete previous file if exists
+		if (Test-Path $output) {
+			Remove-Item $output -Force
+		}
+
+		$start = Get-Date
+		Invoke-WebRequest -Uri $url -OutFile $output
+		
+		or
+		
+		curl -s -L $url -o $output
+
+		
+		$end = Get-Date
+
+		$duration = ($end - $start).TotalSeconds
+		$fileSize = (Get-Item $output).Length
+		$rateMbps = [Math]::Round(($fileSize * 8) / ($duration * 1000000), 2)
+
+		$result = [PSCustomObject]@{
+			Run       = $i
+			Duration  = "{0:N2} s" -f $duration
+			Size_MB   = "{0:N2} MB" -f ($fileSize / 1MB)
+			Rate_Mbps = "$rateMbps Mbps"
+		}
+
+		$results += $result
+		Write-Output $result
+	}
+
+	# Summary
+	Write-Host "`n--- Summary of 10 Downloads ---"
+	$results | Format-Table -AutoSize
+
+	# Optional: save to CSV
+	# $results | Export-Csv -Path "download_results.csv" -NoTypeInformation
+
+}
+
+
+to calculate file copy duration and mean bitrate
+{
+	{ // make bash file and its content is copy file from source to dest and calcualte duration need to transfer and bitrate means.
+		#!/bin/bash
+
+		SRC="source.file"
+		DST="destination.file"
+
+		for i in {1..10}; do
+			echo "Run #$i"
+
+			START=$(date +%s.%N)
+			cp "$SRC" "$DST"
+			END=$(date +%s.%N)
+
+			SIZE=$(stat -c %s "$SRC")
+			DURATION=$(echo "$END - $START" | bc -l)
+			BITRATE_MBPS=$(echo "scale=2; $SIZE / $DURATION / 1024 / 1024 * 8" | bc -l)
+
+			echo "Copied $SIZE bytes in $DURATION seconds"
+			echo "Bitrate: $BITRATE_MBPS Mbps"
+			echo
+
+			rm -f "$DST"
+		done
+	}
+
+	after make bash file we should make it executable so write this
+	chmod +x copy_benchmark.sh
+
+	to be sure its executable we can type
+	ls -l copy_benchmark.sh
+	while it has x factor in ls it has permission to execute
+}
+
+
+14040504
+
+----------
 
 اشکالی که مشاهده شد اینست که گویا ارتباط شبکه ای ماشین مجازی اشکالی دارد و باعث می شود که کندی مقطعی در دوره هایی ایجاد گردد و جریان دایم داده ایجاد نشود
 
@@ -33,18 +297,17 @@ iftop / iptraf / bmon // Show real-time bandwidth usage per connection / interfa
 
 wireshark/tshark // Passive monitoring only
 {
-sudo apt install wireshark tshark
+	sudo apt install wireshark tshark
 
-sudo tshark -i <interface> -f "udp" -Y "udp.port == <port_number> && ip.addr == <ip_address>" // Basic tshark command to capture UDP packets
-sudo tshark -i <interface> -f "udp" -Y "udp.port == <port_number> && ip.addr == <ip_address>" -x // To see raw packet data in hex/ascii format
-sudo tshark -i <interface> -f "udp" -Y "udp.port == <port_number> && ip.addr == <ip_address>" -V // To see detailed packet structure
-sudo tshark -i eth0 -f "udp" -Y "udp.port == 1234 && ip.addr == 192.168.1.100" -w udp_capture.pcap // Save to file and read later
-tshark -r udp_capture.pcap -V -x // To read the saved file:
+	sudo tshark -i <interface> -f "udp" -Y "udp.port == <port_number> && ip.addr == <ip_address>" // Basic tshark command to capture UDP packets
+	sudo tshark -i <interface> -f "udp" -Y "udp.port == <port_number> && ip.addr == <ip_address>" -x // To see raw packet data in hex/ascii format
+	sudo tshark -i <interface> -f "udp" -Y "udp.port == <port_number> && ip.addr == <ip_address>" -V // To see detailed packet structure
+	sudo tshark -i eth0 -f "udp" -Y "udp.port == 1234 && ip.addr == 192.168.1.100" -w udp_capture.pcap // Save to file and read later
+	tshark -r udp_capture.pcap -V -x // To read the saved file:
 
--c <count>: Capture only <count> packets then stop
--T fields -e <field>: Output specific fields only
--l: Flush output after each packet (good for real-time viewing)
-
+	-c <count>: Capture only <count> packets then stop
+	-T fields -e <field>: Output specific fields only
+	-l: Flush output after each packet (good for real-time viewing)
 }
 
 14040428
@@ -59,59 +322,56 @@ passworless sudo super user
 
 iftop // Passive monitoring only
 {
--If you press the t key while running iftop, you can switch to cumulative total bytes transferred instead of rates.
--But you can press the S and D keys to toggle displaying source and destination ports:
+	-If you press the t key while running iftop, you can switch to cumulative total bytes transferred instead of rates.
+	-But you can press the S and D keys to toggle displaying source and destination ports:
 
-Press ? in iftop to see all the key bindings:
-t — cycles through 2/10/40 second totals / rates
-T — toggles total / cumulative mode
-S — toggle source port
-D — toggle destination port
-f — set filter
-n — toggle DNS resolution
-h — toggle hostname display
-q — quit
+	Press ? in iftop to see all the key bindings:
+	t — cycles through 2/10/40 second totals / rates
+	T — toggles total / cumulative mode
+	S — toggle source port
+	D — toggle destination port
+	f — set filter
+	n — toggle DNS resolution
+	h — toggle hostname display
+	q — quit
 }
 
 
 tools use to monitor network throughput
 {
 
-sudo pktstat -i enp0s3 // to more check and use
-sudo iftop -i enp0s3 -f "udp port 1234" // good one
+	sudo pktstat -i enp0s3 // to more check and use
+	sudo iftop -i enp0s3 -f "udp port 1234" // good one
 
-watch -n 1 netstat -su // to watch sumup report
-
-
-iperf3 // Active test: generate and measure traffic
-{
-
-iperf3 -s (on server)
-iperf3 -c server_ip -u -b 100M (on client)
-iperf3: benchmarking throughput with server/client model
-}
-
-Packet Monitoring Tools
-iftop: shows real-time traffic (like a bandwidth meter)
-
-nload: shows bandwidth per interface (not port-level)
-
-tcpdump: captures raw packets
-
-wireshark: GUI packet analyzer
-
-netstat / ss: shows open ports and connections
-
-iptraf-ng, bmon, pktstat: per-port and per-protocol stats
-
-4. Traffic Generation Tools
-hping3: manual packets, good for testing
+	watch -n 1 netstat -su // to watch sumup report
 
 
+	iperf3 // Active test: generate and measure traffic
+	{
+		iperf3 -s (on server)
+		iperf3 -c server_ip -u -b 100M (on client)
+		iperf3: benchmarking throughput with server/client model
+	}
 
-nping: part of nmap, can send many UDP/TCP/ICMP packets
+	Packet Monitoring Tools
+	iftop: shows real-time traffic (like a bandwidth meter)
 
-Traffic shaping, buffer overrun, and congestion control
+	nload: shows bandwidth per interface (not port-level)
+
+	tcpdump: captures raw packets
+
+	wireshark: GUI packet analyzer
+
+	netstat / ss: shows open ports and connections
+
+	iptraf-ng, bmon, pktstat: per-port and per-protocol stats
+
+	4. Traffic Generation Tools
+	hping3: manual packets, good for testing
+
+	nping: part of nmap, can send many UDP/TCP/ICMP packets
+
+	Traffic shaping, buffer overrun, and congestion control
 
 }
 
@@ -135,14 +395,12 @@ sudo ip netns exec testns bash // exec bash app in that namespace . so every net
 sudo ip netns delete testns // delete namespace
 ip netns list // list namespaces
 
-
 ip netns identify $$ // test inside namespace
 
-
-
-
-
-watch -n 1 netstat -su // هر ثانیه مثلا یک دستور را اجرا می کند و نتیجه را می نویسد
+//  iterativly do one thing with interval
+{
+	watch -n 1 netstat -su // هر ثانیه مثلا یک دستور را اجرا می کند و نتیجه را می نویسد
+}
 
 14040424
 
@@ -243,18 +501,18 @@ ulimit -n 4096 // expand file descripor
 iperf close connection after no data input
 
 {
-iperf -c 192.168.100.60 -u -p 1234 -l 1000 -t 10
-make udp packet in client mode to ip to port with packet size with duration 10
+	iperf -c 192.168.100.60 -u -p 1234 -l 1000 -t 10
+	make udp packet in client mode to ip to port with packet size with duration 10
 }
 
 {
 
-iperf زارتی پورت را می بندد
+	iperf زارتی پورت را می بندد
 
-iperf -s -u -p 1234 // udp
-iperf -s -p 4321 // tcp
+	iperf -s -u -p 1234 // udp
+	iperf -s -p 4321 // tcp
 
-listen on udp port in server mode on port 1234
+	listen on udp port in server mode on port 1234
 }
 
 tcpdump udp dst port 1234
@@ -323,8 +581,6 @@ to .git folder to ignore non usable file to staged and push into git
 
 نکنه  از این مشکلات نوستن در حافظه بقیه جاها رو داشته باشیم و مموری کنترل اصلا نداشته باشیم
 
-
-
 sudo agt-get install man
 sudo agt-get install man-db
 
@@ -360,196 +616,201 @@ epoll is a Linux-specific API that offers better scalability for a large number 
 
 --------
 
-https://faradars.org/courses/fvgit9609-git-github-gitlab?registered=1
+git
+{
 
-https://git-scm.com/downloads/win
+	https://faradars.org/courses/fvgit9609-git-github-gitlab?registered=1
 
-git init
+	https://git-scm.com/downloads/win
 
-d:\to hear\Network_Pakravan\
+	git init
 
-git status
+	d:\to hear\Network_Pakravan\
 
-rm -rf .git   # use 'rmdir /s /q .git' in Windows CMD
+	git status
 
-# Create a clean folder and reinitialize
-mkdir MyProject
-cd MyProject
-git init
+	rm -rf .git   # use 'rmdir /s /q .git' in Windows CMD
 
+	# Create a clean folder and reinitialize
+	mkdir MyProject
+	cd MyProject
+	git init
 
-git config --global user.name 'mohsen'
-git config --global user.email "mohsensherkatmasoum@gmail.com"
 
+	git config --global user.name 'mohsen'
+	git config --global user.email "mohsensherkatmasoum@gmail.com"
 
-ou can check what’s currently configured with:
-git config --global --list
 
+	ou can check what’s currently configured with:
+	git config --global --list
 
-git ls-files // get all tracked files
 
-git log --name-only // To see which files were modified in each commit
+	git ls-files // get all tracked files
 
-git add "page*" // just check in files started with page...
+	git log --name-only // To see which files were modified in each commit
 
+	git add "page*" // just check in files started with page...
 
-tracking new file
-git add -A // add all files گیت فایل را در نظر می گیرد
-همه رو ببر درstage
-یعنی آماده چک این شدن می شوند
 
-HEAD اون چیزی است که الان رویش کار می کنیم
+	tracking new file
+	git add -A // add all files گیت فایل را در نظر می گیرد
+	همه رو ببر درstage
+	یعنی آماده چک این شدن می شوند
 
-git commit -m 'comment'
-git commit -a -m 'commit changes by man' // commit changes with comment
+	HEAD اون چیزی است که الان رویش کار می کنیم
 
-git diff // اگر یک فایل تغییر کرده داشته باشیم و کامیت نکرده باشیم این باعث می شود که احتلاف مشاهده شود
+	git commit -m 'comment'
+	git commit -a -m 'commit changes by man' // commit changes with comment
 
-git diff HEAD // مقایسه با آخرین ورژن
+	git diff // اگر یک فایل تغییر کرده داشته باشیم و کامیت نکرده باشیم این باعث می شود که احتلاف مشاهده شود
 
+	git diff HEAD // مقایسه با آخرین ورژن
 
-وقتی یک فایل تغییر می کند آنرا به استیج منتقل می کنیم بعد وقتی کامیت می کنیم به ریپوزتوری اضافه می شود
 
-یک مرحله استیج اضافه کرده که یعنی فقط چیز هایی که قرار است کامیت شود انتخاب شود یک اضافه کردن یک مرحله ی جدید برای جلوگیری از کامیت و خراب شدن موارد خراب اضافه کرده
+	وقتی یک فایل تغییر می کند آنرا به استیج منتقل می کنیم بعد وقتی کامیت می کنیم به ریپوزتوری اضافه می شود
 
-git diff --staged // موارد داخل استیج رو مقایسه گیری می کند
+	یک مرحله استیج اضافه کرده که یعنی فقط چیز هایی که قرار است کامیت شود انتخاب شود یک اضافه کردن یک مرحله ی جدید برای جلوگیری از کامیت و خراب شدن موارد خراب اضافه کرده
 
-عدد منفی در گیت یعنی زمان گذشته فایل و مثبت یعنی جدیده
+	git diff --staged // موارد داخل استیج رو مقایسه گیری می کند
 
-git restore "file" // ignore changes to file and replace with commited version from source control
+	عدد منفی در گیت یعنی زمان گذشته فایل و مثبت یعنی جدیده
 
+	git restore "file" // ignore changes to file and replace with commited version from source control
 
-git reset "file" // از استیج خارج می کند
 
-git checkout -- "file" // آخرین ورژن فایل را دریافت می کند
+	git reset "file" // از استیج خارج می کند
 
-master یا main اسم شاخه اصلی است
+	git checkout -- "file" // آخرین ورژن فایل را دریافت می کند
 
-git branch // شاخه های پروژه نمایش داده می شود
+	master یا main اسم شاخه اصلی است
 
-git branch sth. // شاخه جدیدی اضافه می کند با نام مشخص که می شود روی اون شاخه کاری رو ادامه داد و بعدا با مین یا مستر مرج کرد
+	git branch // شاخه های پروژه نمایش داده می شود
 
+	git branch sth. // شاخه جدیدی اضافه می کند با نام مشخص که می شود روی اون شاخه کاری رو ادامه داد و بعدا با مین یا مستر مرج کرد
 
-git checkout sth. // برنچ با نام خاصی رو می کشد بیرون یا اماده تغییر می کند
-و در واقع این شاخه اماده تغییر می شود
 
-git merge sth. // تغییرات برنچ دیگر را در مستر یا مین اضافه می کند
+	git checkout sth. // برنچ با نام خاصی رو می کشد بیرون یا اماده تغییر می کند
+	و در واقع این شاخه اماده تغییر می شود
 
---- install nano for windows
+	git merge sth. // تغییرات برنچ دیگر را در مستر یا مین اضافه می کند
 
-download it from https://github.com/okibcn/nano-for-windows/releases
+	--- install nano for windows
 
-copy it to program file
+	download it from https://github.com/okibcn/nano-for-windows/releases
 
-add environment variable -> system variable -> path -> dir of nano like c:\Program Files\nano
+	copy it to program file
 
-close and open again console and write nano --version
+	add environment variable -> system variable -> path -> dir of nano like c:\Program Files\nano
 
-------------
+	close and open again console and write nano --version
 
-git rm file // remove from git branch and file system
+	------------
 
+	git rm file // remove from git branch and file system
 
-یک نکته مهم اینه که هر کامیت یک کاری بکند
 
-یک چیز جالب وقتی یک فایل را در برنچی پاک می کنیم و تا وقتی که در ان برنچ کامیت نکردیم در بقیه برنچ ها هم اون فایل دیگر در فایل سیستم مشاهده نمی شود ولی به محض کامیت در یک برنچ دیگر برنچ ها می فهمند که اون تغییر در دیگر برنچ است فلذا اون فایل دلیت شده در اون یکی برنچ قابل مشاهده است
+	یک نکته مهم اینه که هر کامیت یک کاری بکند
 
-بعد از اینکه برنچ فرعی با اصلی مرج شد می شود پاکش کرد با دستور
+	یک چیز جالب وقتی یک فایل را در برنچی پاک می کنیم و تا وقتی که در ان برنچ کامیت نکردیم در بقیه برنچ ها هم اون فایل دیگر در فایل سیستم مشاهده نمی شود ولی به محض کامیت در یک برنچ دیگر برنچ ها می فهمند که اون تغییر در دیگر برنچ است فلذا اون فایل دلیت شده در اون یکی برنچ قابل مشاهده است
 
-git branch -d sth. // delete some branch
+	بعد از اینکه برنچ فرعی با اصلی مرج شد می شود پاکش کرد با دستور
 
+	git branch -d sth. // delete some branch
 
 
-git clone remoteaddrs
 
-نسخه اصلی
-origin
-است 
+	git clone remoteaddrs
 
+	نسخه اصلی
+	origin
+	است 
 
-git push origin master // send taghirat to branch origin github repository from main branch in local cloned repository
 
-git pull origin main // from github to local repository
+	git push origin master // send taghirat to branch origin github repository from main branch in local cloned repository
 
+	git pull origin main // from github to local repository
 
-git remote add origin addrss // یک ادرس ریموت برای اوریجین یعنی نسخه تخت گیت هاب چیزی که ما داریم اضافه می کند
-حالا اینجا معنی میده که بگیم
-git push -u  origin master
-که یعنی داره میگه حالا که برای مستر اوریجین تعیین کریم بیا مستر رو بفرست روی گیت هاب. نگکته باحال اینست که می شود برای یک مستر یا مین چند ریموت تعیین کرد که یعنی چند جا چک این کن که امنیت حفظ شود
 
+	git remote add origin addrss // یک ادرس ریموت برای اوریجین یعنی نسخه تخت گیت هاب چیزی که ما داریم اضافه می کند
+	حالا اینجا معنی میده که بگیم
+	git push -u  origin master
+	که یعنی داره میگه حالا که برای مستر اوریجین تعیین کریم بیا مستر رو بفرست روی گیت هاب. نگکته باحال اینست که می شود برای یک مستر یا مین چند ریموت تعیین کرد که یعنی چند جا چک این کن که امنیت حفظ شود
 
 
-CONFLICT (content): Merge conflict in simulator/s4u-activity-testany.cpp
-Automatic merge failed; fix conflicts and then commit the result.
 
-git add -A // staged all files
+	CONFLICT (content): Merge conflict in simulator/s4u-activity-testany.cpp
+	Automatic merge failed; fix conflicts and then commit the result.
 
-------- 009
+	git add -A // staged all files
 
-tag // بیشتر برای ورژن زدن استفاده می شود
+	------- 009
 
-git tag // list all tag
+	tag // بیشتر برای ورژن زدن استفاده می شود
 
-git tag -a v2.0 -m "text tax" // یعنی تگ بزن روی نسخه انتخابی فعلی و اسمش را بزار ورژن 2 و یک کامنت بزار براش
+	git tag // list all tag
 
-خاصیتش اینست که میتونیم برنامه را نسخه دار کنیم یعنی بگیم نسخه فلان را برای ما الان آماده کن و ببینیمش یا برنچش کن برای ما که اونرو ادامه بدیم
+	git tag -a v2.0 -m "text tax" // یعنی تگ بزن روی نسخه انتخابی فعلی و اسمش را بزار ورژن 2 و یک کامنت بزار براش
 
+	خاصیتش اینست که میتونیم برنامه را نسخه دار کنیم یعنی بگیم نسخه فلان را برای ما الان آماده کن و ببینیمش یا برنچش کن برای ما که اونرو ادامه بدیم
 
-تگ در حالت عادی روی گیت هاب پوش نمی شود ولی می توان گفت بزرو پوشش کن
 
-git push origin v1.8  // نسخه مشخصی رو بفرست سمت ریموت
-git push origin --tags // همه تگ ها بفرست سمت ریموت
+	تگ در حالت عادی روی گیت هاب پوش نمی شود ولی می توان گفت بزرو پوشش کن
 
+	git push origin v1.8  // نسخه مشخصی رو بفرست سمت ریموت
+	git push origin --tags // همه تگ ها بفرست سمت ریموت
 
-اینجوری می شود یک ورژن مشخص را برای ادیت به عنوان هد قرار داد
-git checkout v2.0
-البته درستش اینه که اگر می خواهیم روی یک ورژن قدیمی کار کنیم یک برنچ بسازیم و اونرو ادامه بدیم
-git checkout -b branch_name
 
+	اینجوری می شود یک ورژن مشخص را برای ادیت به عنوان هد قرار داد
+	git checkout v2.0
+	البته درستش اینه که اگر می خواهیم روی یک ورژن قدیمی کار کنیم یک برنچ بسازیم و اونرو ادامه بدیم
+	git checkout -b branch_name
 
------ 010
 
-امضای دیجیتال همه چیز از جمله ورژن و کامیت و غیره با کلید
-gpg
-که یک برنامه نصبی است
+	----- 010
 
--------- 011
+	امضای دیجیتال همه چیز از جمله ورژن و کامیت و غیره با کلید
+	gpg
+	که یک برنامه نصبی است
 
-git help blame // توضیح واضحی از ابزار های گیت
+	-------- 011
 
-دنبال ابزاری هستیم که با روش نیوتون بابک حافظی پی ببریم کدام ورژن ما خراب کرده در اجرا این ابزار 
+	git help blame // توضیح واضحی از ابزار های گیت
 
-bisect
-نام دارد
+	دنبال ابزاری هستیم که با روش نیوتون بابک حافظی پی ببریم کدام ورژن ما خراب کرده در اجرا این ابزار 
 
-git bisect start
-git bisect bad
+	bisect
+	نام دارد
 
-...
+	git bisect start
+	git bisect bad
 
-git bisect good
+	...
 
-با زدن دستور استارت و اینکه الان اوضاع خرابه و با پیشنهاد گیت که ورژن را ÷یپشنهاد میده میشه فهمید کدام ورژن خراب شده
+	git bisect good
 
------- 012
+	با زدن دستور استارت و اینکه الان اوضاع خرابه و با پیشنهاد گیت که ورژن را ÷یپشنهاد میده میشه فهمید کدام ورژن خراب شده
 
+	------ 012
 
-pull request
 
-یعنی ریپوزیتوری اصلی را یک فورک رویش میزنه و می اندازیم در یوزر خودمان بعد تغییراتی که روی نسخه خودمان هست را اجرا می کنیم و بعد می توانیم به سازنده اصلی ریپو بگیم بیا این فایل ما که تغییر کرده را بگیر بنداز روی نسخه اولیه
+	pull request
 
-------
+	یعنی ریپوزیتوری اصلی را یک فورک رویش میزنه و می اندازیم در یوزر خودمان بعد تغییراتی که روی نسخه خودمان هست را اجرا می کنیم و بعد می توانیم به سازنده اصلی ریپو بگیم بیا این فایل ما که تغییر کرده را بگیر بنداز روی نسخه اولیه
 
-git add *.c
-git add *.cpp
-git add *.h
+	------
 
-git remote add origin https://github.com/hegmataneh/work.git
+	git add *.c
+	git add *.cpp
+	git add *.h
 
-git push origin main
+	git remote add origin https://github.com/hegmataneh/work.git
 
-خلاصه چند تا فولدر مجزا رو در یک ریپوزیتوری نمیشه اد کرد
-هر کی ریپوز خودش
+	git push origin main
+
+	خلاصه چند تا فولدر مجزا رو در یک ریپوزیتوری نمیشه اد کرد
+	هر کی ریپوز خودش
+
+}
 
 ------
 
@@ -591,8 +852,6 @@ sudo apt update
 sudo apt install build-essential gcc g++ gdb zip rsync
 sudo apt install -y make cmake
 
-
-
 3. Synchronize Remote Headers
 To enable IntelliSense to recognize Linux headers:
 
@@ -631,6 +890,7 @@ iptables -t nat -L
 sudo sysctl -a | grep broad
 
 ----------
+
 history of shell command
 history | awk '{$1=""; print $0}' | sed 's/^ *//' | sort | uniq
 
@@ -710,7 +970,6 @@ in code
         printf("C89/C90\n");
     #endif
 	
-	
 ---------------
 
 هر وقت تغییری در فایل های 
@@ -718,7 +977,6 @@ dep
 می دادم امکان داشت این تغییر در کامپایل اعمال نشود فلذا باید
 clean
 می کردم و مجدد تست می کردم
-
 
 ---
 
@@ -750,7 +1008,6 @@ strdup
 project properties - c/cpp - command line - additional options - -D_POSIX_C_SOURCE=200809L 
 اضافه می گردد
 
-
 But also note: strdup is not part of ANSI C (C89), but it is available in POSIX. Some environments require defining a feature macro, or using a compiler flag like -D_POSIX_C_SOURCE=200809L.
 
 ----
@@ -769,7 +1026,6 @@ https://gcc.gnu.org/onlinedocs/gcc/Diagnostic-Pragmas.html
 libyaml از ادرس 
 https://pyyaml.org/wiki/LibYAML
 دانلود شد
-
 
 ---
 
