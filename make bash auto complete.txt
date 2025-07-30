@@ -1,0 +1,84 @@
+To fix or enable command **auto-completion** in Ubuntu shell (usually **bash** or **zsh**), follow these steps:
+
+---
+
+### ✅ For **Bash Shell** (default in Ubuntu):
+
+#### 1. **Install bash-completion**
+
+```bash
+sudo apt update
+sudo apt install bash-completion
+```
+
+#### 2. **Enable bash-completion in `.bashrc`**
+
+Open the file:
+
+```bash
+nano ~/.bashrc
+```
+
+Ensure this block exists and is **not commented out**:
+
+```bash
+if [ -f /etc/bash_completion ]; then
+    . /etc/bash_completion
+fi
+```
+
+Then **reload** the config:
+
+```bash
+source ~/.bashrc
+```
+
+#### 3. **Test Auto-Completion**
+
+Try typing:
+
+```bash
+sudo apt ins[TAB]
+```
+
+It should complete to:
+
+```bash
+sudo apt install
+```
+
+---
+
+### ✅ For **Zsh Shell** (if you use zsh):
+
+#### 1. Install `zsh` and `oh-my-zsh` (optional, but powerful)
+
+```bash
+sudo apt install zsh
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+```
+
+Zsh comes with powerful auto-completion.
+
+---
+
+### 🧪 Extra Tips:
+
+* **Tab key** is used for auto-completion.
+* Press `[TAB][TAB]` to list possible completions.
+* Auto-completion works for:
+
+  * Commands
+  * Files
+  * Paths
+  * Installed packages
+  * Git branches (if enabled)
+  * Docker/Kubectl/... (if completion scripts are sourced)
+
+---
+
+If it still doesn't work, tell me:
+
+* Your shell (`echo $SHELL`)
+* Your Ubuntu version (`lsb_release -a`)
+  So I can help more precisely.

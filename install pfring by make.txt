@@ -1,0 +1,144 @@
+Sure. Here’s a **step-by-step guide to install the open-source version of PF\_RING** on a Linux system (such as Ubuntu). PF\_RING is a high-speed packet capture and filtering framework by ntop.
+
+---
+
+### ✅ Prerequisites
+
+Before installing PF\_RING:
+
+* Recommended OS: **Ubuntu 20.04 or 22.04**
+* Ensure you have kernel headers and build tools installed.
+* Internet connection to clone the GitHub repository.
+
+---
+
+### 🧰 Step 1: Install Dependencies
+
+Open a terminal and install required packages:
+
+```bash
+sudo apt update
+sudo apt install -y build-essential git linux-headers-$(uname -r)
+```
+
+---
+
+### 🧾 Step 2: Clone PF\_RING Repository
+
+Clone the official PF\_RING GitHub repository:
+
+```bash
+git clone https://github.com/ntop/PF_RING.git
+cd PF_RING
+```
+
+---
+
+### ⚙️ Step 3: Build PF\_RING Core
+
+This compiles the kernel module and user-space library.
+
+```bash
+cd kernel
+make
+```
+
+> This builds the kernel module `pf_ring.ko`.
+
+To install it:
+
+```bash
+sudo make install
+sudo insmod ./pf_ring.ko
+```
+
+You can verify it loaded with:
+
+```bash
+lsmod | grep pf_ring
+```
+
+Or check logs:
+
+```bash
+dmesg | grep pf_ring
+```
+
+---
+
+### 🧪 Step 4: Build User-Space Tools
+
+Go back to the base PF\_RING directory and build user tools:
+
+```bash
+cd ../userland/lib
+make
+sudo make install
+```
+
+Now build applications:
+
+```bash
+cd ../examples
+make
+```
+
+This will build sample applications like `pfcount`, `pfbridge`, etc.
+
+---
+
+### 🧪 Step 5: Run a Test (e.g., pfcount)
+
+Use `pfcount` to test packet capture performance:
+
+```bash
+sudo ./pfcount -i eth0
+```
+
+Replace `eth0` with your network interface name. To list interfaces:
+
+```bash
+ip link show
+```
+
+---
+
+### ✅ Step 6: Load on Boot (Optional)
+
+If you want to load PF\_RING module at boot:
+
+```bash
+echo pf_ring | sudo tee -a /etc/modules
+```
+
+To install the module system-wide:
+
+```bash
+sudo cp kernel/pf_ring.ko /lib/modules/$(uname -r)/kernel/net/
+sudo depmod -a
+```
+
+---
+
+### 🚫 Licensing Note
+
+The **zero-copy features and high-performance drivers (like ZC)** are **not open source**. This guide installs only the **open-source core**.
+
+If you later want to evaluate ZC (closed-source), you must register at [ntop.org](https://www.ntop.org/products/packet-capture/pf_ring/) and get evaluation binaries.
+
+---
+
+### 📌 Summary
+
+| Step | Description                    |
+| ---- | ------------------------------ |
+| 1    | Install dependencies           |
+| 2    | Clone PF\_RING from GitHub     |
+| 3    | Build kernel module            |
+| 4    | Build user-space libraries     |
+| 5    | Test with sample tools         |
+| 6    | (Optional) Load module on boot |
+
+---
+
+If you tell me your Ubuntu version or if you're using custom kernel or virtual machine setup, I can give you even more exact steps.

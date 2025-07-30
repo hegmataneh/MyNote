@@ -1,0 +1,128 @@
+
+iperf3 -c 192.168.100.60 -u -b 100M
+
+iperf3 -c 192.168.100.60 -u -l 60 -b 0 -n 1000000
+
+
+
+
+tshark -i enp0s3 -Y "udp.port == 1234" -T fields -e frame.len | awk '{sum += $1} END {print sum}'
+
+
+tshark -i enp0s3 -f "udp" -Y "udp.port == 1234" -x
+
+tshark -i enp0s3 -Y "udp.port == 1234" -T fields -e udp.length
+
+tshark -i enp0s3 -Y "udp.port == 1234" -T fields -e frame.len
+
+tshark -i enp0s3 -Y "udp.port == 1234 && ip.addr == 192.168.100.59 && !(tcp.analysis.ack)" -T fields -e frame.len
+
+tshark -i enp0s3 -f "udp" -Y "udp.port == 1234" -x
+
+
+tshark -Y "ip.src == 192.168.100.59" -T fields -e frame.len
+
+
+tshark -i enp0s3 -Y "udp.port == 1234 && frame.len != 60" -T fields -e frame.len
+
+
+hping3 --udp -p 5201 192.168.100.60
+
+hping3 -1 -c 1 192.168.100.60
+
+hping3 --udp -p 1234 -d 1 -c 1000 192.168.100.60
+
+
+
+sudo nping --udp -c 10000000 -q --rate 1000000 -p 1234 --data-length 1 192.168.100.60
+
+
+           tcpdump -i enp0s3 -n -q -v udp and port 1234 > /dev/null | wc -l
+
+timeout 20 tcpdump -i enp0s3 -n -q udp and port 12345 2>/dev/null | wc -l
+
+
+for i in {1..6}; do
+  echo "Run $i..."
+  timeout 120 tcpdump -i enp0s3 -n -v udp and port 1234 > /dev/null
+done
+
+
+for i in {1..6}; do
+  echo "Run $i..."
+  timeout 120 sudo nping --udp -c 2000000 -q --rate 1000000 -p 1234 --data-length 1 192.168.100.60
+done
+
+
+
+
+tshark -i enp0s3 -c 1 -f "udp dst port 1234" -a -q -T fields -e udp.length -e frame.time_relative
+
+
+tshark -i enp0s3 -c 2000000 -f "udp dst port 1234" -a duration:70 -q -T fields -e udp.length -e frame.time_relative |
+awk 'BEGIN {
+    total_len = 0
+    count = 0
+    start_time = -1
+    end_time = 0
+}
+{
+    len = $1
+    time = $2 + 0  # force numeric
+    if (start_time < 0) start_time = time
+    total_len += len
+    count += 1
+    end_time = time
+}
+END {
+    duration = end_time - start_time
+    if (count > 0 && duration > 0) {
+        throughput = (total_len * 8) / duration
+        printf("Packet count: %d\n", count)
+        printf("Start time: %.6f s\n", start_time)
+        printf("End time:   %.6f s\n", end_time)
+        printf("Duration:   %.6f s\n", duration)
+        printf("Average throughput: %.2f bps\n", throughput)
+		printf("total_len: %.2f b\n", total_len)
+    } else if (count > 0) {
+        printf("Only one packet received, unable to calculate duration.\n")
+    } else {
+        printf("No packets received.\n")
+    }
+}'
+
+
+sudo hping3 --udp -p 1234 -d 1 -c 2000000 -q 192.168.100.60
+
+
+
+tshark -i enp0s3 -f "udp dst port 4321" -a duration:70 -q -T fields -e frame.len -e frame.time_relative |
+
+tshark -i enp0s3 -f "tcp port 1234" -a duration:60 -q -T fields -e udp.length -e frame.time_epoch | awk '
+BEGIN {first=0; last=0; total_bytes=0; packet_count=0}
+{
+  time=$1; len=$2
+  if (first==0) first=time
+  last=time
+  total_bytes += len
+  packet_count++
+}
+END {
+  duration = last - first
+  printf "Total packets: %d\n", packet_count
+  printf "Total bytes: %d\n", total_bytes
+  if (duration > 0) {
+    printf "Duration: %.6f seconds\n", duration
+    printf "Average throughput: %.2f bytes/sec\n", total_bytes / duration
+  } else {
+    print "Not enough data to calculate throughput."
+  }
+} '
+
+
+
+tcpdump -i enp0s3 -n udp and port 12345
+
+
+          https://github.com/ntop/PF_RING.git
+git clone https://github.com/ntop/PF_RING.git

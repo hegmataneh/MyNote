@@ -1,0 +1,78 @@
+to install pf_ring it must be vpn in ubuntu linux
+
+
+
+Good point — you're right. **PF\_RING** is a high-performance Linux packet capture framework that **should** be on the list. Here's why it’s important and how it compares to the other stacks:
+
+---
+
+## 🔹 **PF\_RING**
+
+* **Website**: [https://www.ntop.org/products/packet-capture/pf\_ring/](https://www.ntop.org/products/packet-capture/pf_ring/)
+* **Developed by**: [ntop](https://www.ntop.org)
+* **Type**: Kernel module + user-space API
+* **Use case**: High-speed packet capture and analysis with or without kernel bypass.
+* **Ubuntu support**: Actively tested on Ubuntu 18.04, 20.04, 22.04 (DEB packages available).
+
+---
+
+### ✅ Features
+
+* **High-performance packet capture**: Much faster than raw `libpcap`.
+* **Zero-copy mode**: Via `PF_RING ZC` (requires compatible NICs).
+* **Compatible with libpcap**: Tools like `tcpdump`, `Wireshark`, `nprobe`, and `ntopng` can benefit with minimal change.
+* **Multi-threaded**: Works efficiently on multicore CPUs.
+* **Supports NIC drivers**: Like Intel iXGBE, i40e with custom ZC drivers.
+
+---
+
+### 🔄 PF\_RING vs Others:
+
+| Feature              | PF\_RING            | DPDK           | XDP + AF\_XDP     | Netmap   | VPP  |
+| -------------------- | ------------------- | -------------- | ----------------- | -------- | ---- |
+| Kernel bypass        | Partial (ZC mode)   | Yes            | Partial           | Yes      | Yes  |
+| POSIX socket API     | Yes (libpcap-like)  | No             | No                | Limited  | No   |
+| Complexity           | Low–Medium          | High           | Medium            | Medium   | High |
+| Packet capture speed | Very high (ZC mode) | Extremely high | Very high         | High     | High |
+| Ubuntu support       | Excellent           | Excellent      | Excellent         | Moderate | Good |
+| Suitable for IDS     | ✅ (e.g. Suricata)   | ❌ (complex)    | ⚠️ (raw handling) | ⚠️       | ⚠️   |
+
+---
+
+### 🔧 When to Use PF\_RING
+
+Use PF\_RING when:
+
+* You want **high-speed packet capture** but **stay close to libpcap** tools.
+* You need to **accelerate existing tools** like `tcpdump`, `nprobe`, `ntopng`, or `Suricata`.
+* You want **low setup complexity** but **high performance**.
+
+---
+
+### ❗ Notes
+
+* **PF\_RING ZC** (Zero Copy) is **not open-source** — requires commercial license for full features.
+* Regular PF\_RING (open-source) is fast, but **not kernel bypass** unless using ZC.
+* Excellent for users who want **performance boost** without rewriting apps.
+
+---
+
+### 🧪 Ubuntu Installation Quick Reference
+
+```bash
+# Add ntop repository (change based on Ubuntu version)
+wget https://packages.ntop.org/apt/ntop.key
+sudo apt-key add ntop.key
+echo "deb http://packages.ntop.org/apt/$(lsb_release -cs)/ $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/ntop.list
+sudo apt update
+
+# Install PF_RING
+sudo apt install pfring
+
+# Check if working
+modinfo pf_ring
+```
+
+---
+
+Let me know if you want examples with `tcpdump`, `libpcap`, or ZC API for PF\_RING.

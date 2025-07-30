@@ -34,6 +34,11 @@ to learn
 
 	redis as in memory database
 
+	psfax
+	
+	
+	false positive and false negative and other thing in that subject
+
 }
 
 questions:

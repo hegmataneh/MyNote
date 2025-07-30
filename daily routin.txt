@@ -1,12 +1,14 @@
 daily routin
 
-1- check afra
-2- report
-3- stage & push or sync
-4- sudo mount -t vboxsf my_project /home/my_projects
-5- تعیین غذاب هفتگی
-6- کنترل فیش حقوقی سر ماه
-7- 
+1- ghyas
+2- clean spam sms
+2- check afra
+3- report
+4- stage & push or sync
+5- sudo mount -t vboxsf my_project /home/my_projects
+6- تعیین غذاب هفتگی
+7- کنترل فیش حقوقی سر ماه
+8- 
 
 title SSH to 192.168.100.59
 ssh mohsen@192.168.100.59
@@ -17,4 +19,6 @@ ssh mohsen@192.168.100.60
 title SSH to 192.168.100.61
 ssh mohsen@192.168.100.61
 
-8-
+9- See www.geeksforgeeks.org/linux-unix
+10- گزارش کار روزانه برای حمیدی
+11- 

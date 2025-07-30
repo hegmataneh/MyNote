@@ -1,0 +1,64 @@
+If you get the error:
+
+```
+Package 'bpftool' has no installation candidate
+```
+
+…it means the package is either **not available in your current APT sources** or you're on an older version of Ubuntu that doesn't have it in the default repositories.
+
+---
+
+### ✅ Solution 1: Use `linux-tools` (recommended)
+
+`bpftool` is part of `linux-tools-<version>`. Run:
+
+```bash
+uname -r
+```
+
+For example, if the output is `5.15.0-100-generic`, then install:
+
+```bash
+sudo apt update
+sudo apt install linux-tools-5.15.0-100-generic
+```
+
+After that, you’ll find `bpftool` at:
+
+```bash
+/usr/lib/linux-tools-*/bpftool
+```
+
+To make it globally available:
+
+```bash
+sudo ln -s /usr/lib/linux-tools-$(uname -r)/bpftool /usr/local/bin/bpftool
+```
+
+---
+
+### ✅ Solution 2: Install from source
+
+If your kernel tools package doesn’t include `bpftool` or you want the latest version:
+
+```bash
+sudo apt update
+sudo apt install -y git clang llvm libelf-dev libbpf-dev build-essential pahole
+
+git clone --depth=1 https://github.com/libbpf/bpftool
+cd bpftool/src
+make
+sudo make install
+```
+
+After this, you can use `bpftool` from anywhere.
+
+---
+
+### ✅ Confirm it works
+
+```bash
+bpftool version
+```
+
+Let me know your Ubuntu version (`lsb_release -a`) if you still hit issues.
