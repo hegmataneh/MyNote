@@ -1,0 +1,58 @@
+Yes, the reason you see `http://ir.archive.ubuntu.com` is because Ubuntu detects your location (Iran) and assigns a mirror closest to you.
+
+To **manually change** this mirror to use the **United States (US) servers**, follow these steps:
+
+---
+
+### 🔧 Option 1: Edit sources.list (Manual Method)
+
+1. Open the sources file with a text editor:
+
+   ```bash
+   sudo nano /etc/apt/sources.list
+   ```
+
+2. Find all lines with:
+
+   ```
+   http://ir.archive.ubuntu.com/ubuntu
+   ```
+
+   And replace them with:
+
+   ```
+   http://us.archive.ubuntu.com/ubuntu
+   ```
+
+3. If you see any lines like `security.ubuntu.com`, you can leave them, or also replace them with:
+
+   ```
+   http://us.archive.ubuntu.com/ubuntu
+   ```
+
+4. Save and exit:
+
+   * Press `Ctrl + O` to write/save
+   * Press `Enter` to confirm
+   * Press `Ctrl + X` to exit
+
+5. Update your package list:
+
+   ```bash
+   sudo apt update
+   ```
+
+---
+
+### 🧰 Option 2: Use `sed` to replace all at once
+
+If you want a one-line command to automatically change all occurrences:
+
+```bash
+sudo sed -i 's|http://ir.archive.ubuntu.com|http://us.archive.ubuntu.com|g' /etc/apt/sources.list
+sudo apt update
+```
+
+---
+
+Let me know if you're using a different file like `/etc/apt/sources.list.d/*` or if the change doesn’t take effect.

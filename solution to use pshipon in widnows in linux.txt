@@ -1,0 +1,121 @@
+in windows 10 i run psiphon3 to change my ip or setup vpn. so i want to see how this app use to tunnel my connection and bypass filtering in my country
+{
+To understand how **Psiphon3** works on Windows 10 and tunnels your traffic to bypass filtering, here's a breakdown of its internal behavior and tunneling method:
+
+---
+
+## 🔍 Overview: How Psiphon3 Works
+
+Psiphon is a **censorship circumvention tool** that combines multiple techniques:
+
+* **VPN (L2TP over IPsec, OpenVPN)**
+* **SSH Tunnel with obfuscation**
+* **HTTP Proxy**
+* **WebSocket tunneling (obfuscated SSH)**
+* **Domain fronting (via CDN like CloudFront, Azure, etc.)**
+
+Psiphon3 on Windows acts **like a local proxy server** and routes some or all of your traffic through **encrypted tunnels** to servers outside your country.
+
+---
+
+## 🧠 How It Tunnels Your Traffic
+
+When you start Psiphon3:
+
+1. **Starts a local HTTP/HTTPS/SOCKS proxy server** on your machine (usually at `127.0.0.1:8080` or similar).
+2. **Establishes a tunnel (SSH or VPN)** to a Psiphon server located in a free country.
+3. Your apps (or system browser) are **configured to send requests to the local proxy**.
+4. Psiphon **forwards these requests securely** through the encrypted tunnel.
+
+---
+
+## 🔧 Confirm Proxy Ports
+
+After launching Psiphon3, check which ports are active:
+
+```cmd
+netstat -an | findstr LISTENING
+```
+
+Look for something like:
+
+```
+TCP    127.0.0.1:8080   LISTENING
+TCP    127.0.0.1:1080   LISTENING
+```
+
+* Port `8080` = HTTP proxy
+* Port `1080` = SOCKS5 proxy
+
+---
+
+## 🧪 Analyze Psiphon's Tunnel (Step-by-Step)
+
+### 1. 🔬 See Connections Made by Psiphon
+
+Use this command in PowerShell or CMD:
+
+```powershell
+netstat -ano | findstr psiphon3.exe
+```
+
+Then see what remote IPs it connects to (those are Psiphon servers, often obfuscated domains).
+
+---
+
+### 2. 🧰 Use Wireshark to Capture Psiphon Traffic
+
+* Start Wireshark
+* Filter: `tcp.port == 443` (to capture HTTPS traffic)
+* Look for connections to **Psiphon server IPs**
+* Traffic is **encrypted**, but you can see:
+
+  * Remote IPs
+  * TLS handshake
+  * Obfuscation headers
+
+---
+
+### 3. 🛠 Use Proxifier to See Routed Apps
+
+Install [Proxifier](https://www.proxifier.com/) to:
+
+* See which applications are using Psiphon's proxy
+* Force all apps (even ones without proxy settings) to go through Psiphon
+
+---
+
+## 📦 Optional: See Config File or Launch Info
+
+Psiphon3 stores some logs/config here:
+
+```
+C:\Users\<YourUsername>\AppData\Local\Psiphon3\
+```
+
+Check files like `psiphon3.log` for:
+
+* Proxy port setup
+* Server IP used
+* Connection mode: SSH+, VPN, etc.
+
+---
+
+## 🧭 Summary
+
+| Feature          | Behavior in Psiphon3                    |
+| ---------------- | --------------------------------------- |
+| Proxy method     | Local HTTP/SOCKS proxy                  |
+| Tunnel type      | SSH with obfuscation / VPN              |
+| Obfuscation      | Anti-DPI headers, domain fronting       |
+| Port use         | 1080 (SOCKS), 8080 (HTTP)               |
+| Data encryption  | Yes (SSH or TLS)                        |
+| Whole-system VPN | No (on Windows, it's per-app via proxy) |
+
+---
+
+If you want to **route Linux or VirtualBox traffic** through Psiphon3 running on the **Windows host**, I can also guide you through setting up **iptables/ipchains** or **proxychains** to use the Psiphon local proxy (`127.0.0.1:1080`) on the guest.
+
+Would you like help with that too?
+
+}
