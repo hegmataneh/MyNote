@@ -1,0 +1,82 @@
+in windows how can redirect packet receive to port to specific port
+{
+In Windows, you can redirect packets received on one port to another port using built-in tools or third-party utilities.
+
+Here are the main options:
+
+---
+
+### **1. Using `netsh portproxy` (built-in)**
+
+Windows has a built-in port forwarding feature via `netsh`:
+
+**Example:**
+
+```powershell
+netsh interface portproxy add v4tov4 listenport=8080 listenaddress=0.0.0.0 connectport=9090 connectaddress=127.0.0.1
+```
+
+**Explanation:**
+
+* `listenport=8080` → Port where packets are received.
+* `listenaddress=0.0.0.0` → Listen on all interfaces.
+* `connectport=9090` → Port to forward packets to.
+* `connectaddress=127.0.0.1` → Destination address.
+
+**Check rules:**
+
+```powershell
+netsh interface portproxy show all
+```
+
+**Remove a rule:**
+
+```powershell
+netsh interface portproxy delete v4tov4 listenport=8080 listenaddress=0.0.0.0
+```
+
+⚠️ **Limitations**:
+
+* Works only for TCP (no UDP support).
+* Needs admin privileges.
+
+---
+
+### **2. Using `netsh` with IPv6 trick (for TCP only)**
+
+Sometimes people use `netsh interface portproxy` with IPv6 even for IPv4 redirection because Windows internally translates.
+But still **UDP is not supported**.
+
+---
+
+### **3. For UDP Support — Use Third-Party Tools**
+
+* **[NAT32](https://www.nat32.com/)**
+* **[rinetd for Windows](https://boutell.com/rinetd/)**
+* **[Simple Port Forwarding](https://www.simpleportforwarding.com/)**
+* **[Port Forwarding by Nuts About Nets](https://nutsaboutnets.com/port-forwarding/)**
+* **\[Socat for Windows (Cygwin/WSL)]**
+
+**Example with `socat` (TCP or UDP):**
+
+```bash
+socat TCP-LISTEN:8080,fork TCP:127.0.0.1:9090
+```
+
+```bash
+socat UDP-LISTEN:8080,fork UDP:127.0.0.1:9090
+```
+
+---
+
+### **4. Using PowerShell with Sockets**
+
+If you only need basic TCP relay, you can write a small PowerShell script using `System.Net.Sockets.TcpListener` to forward traffic.
+
+---
+
+If you tell me whether you need **TCP only or TCP+UDP**, I can give you a **ready-to-run Windows command** to redirect packets.
+
+Do you want the redirection to work for **both TCP and UDP**?
+
+}

@@ -1,0 +1,34 @@
+why we should type ./test_pfring.out instead of test_pfring.out
+{
+On Linux, when you run a program like `test_pfring.out`, the shell looks for it in the directories listed in your **`PATH`** environment variable.
+
+By default, the **current directory (`.`)** is **not** in `PATH` for security reasons — to prevent accidentally running malicious executables in your working directory instead of trusted system commands.
+
+So:
+
+* Typing `test_pfring.out` means:
+
+  > “Find a file named `test_pfring.out` in one of the directories in `$PATH` and run it.”
+  > Since `.` is not in `$PATH`, it won’t find it.
+
+* Typing `./test_pfring.out` means:
+
+  > “Run the file named `test_pfring.out` in the current directory (`./`).”
+  > Here, `./` explicitly tells the shell where to find the file.
+
+---
+
+If you want to run it without `./`, you could add the current directory to your `PATH`:
+
+```bash
+export PATH=$PATH:.
+```
+
+But **this is unsafe** because it can cause you to accidentally run untrusted files.
+
+---
+
+If you want, I can explain **why putting `.` in `PATH` is considered dangerous**.
+Do you want me to go into that?
+
+}

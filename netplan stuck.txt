@@ -1,0 +1,138 @@
+i start ubuntu on virtual machine and it stuck on job systemd-networkd-wait-online.service/start running . how can pass it
+{
+That “`systemd-networkd-wait-online.service`” message means your Ubuntu VM is hanging while waiting for a network interface to get an IP address.
+You can bypass it in a few ways depending on whether you want to **skip it temporarily** or **disable it permanently**.
+
+---
+
+## **1. Temporary Bypass at Boot**
+
+1. When the GRUB boot menu appears, press **`e`** to edit the boot entry.
+2. Find the line starting with:
+
+   ```
+   linux /boot/vmlinuz-...
+   ```
+3. Add this at the end:
+
+   ```
+   systemd.mask=systemd-networkd-wait-online.service
+   ```
+4. Press **`Ctrl+X`** or **F10** to boot.
+
+This will skip the wait for this boot only.
+
+---
+
+## **2. Permanent Disable**
+
+Once you get into Ubuntu:
+
+```bash
+sudo systemctl disable systemd-networkd-wait-online.service
+sudo systemctl mask systemd-networkd-wait-online.service
+```
+
+This will stop the service from running at all.
+
+---
+
+## **3. Fix the Underlying Cause**
+
+This service waits for `systemd-networkd` to detect network connectivity.
+If you want to keep the service but avoid the hang:
+
+* Ensure your VM's network adapter is connected in VirtualBox (`Settings → Network → Cable Connected`).
+* If you use `netplan` with DHCP, make sure the correct interface is configured:
+
+  ```bash
+  sudo nano /etc/netplan/*.yaml
+  ```
+
+  Example DHCP config:
+
+  ```yaml
+  network:
+    version: 2
+    ethernets:
+      enp0s3:
+        dhcp4: true
+  ```
+
+  Then apply:
+
+  ```bash
+  sudo netplan apply
+  ```
+
+---
+
+If you want, I can give you **a GRUB edit trick** that lets you boot immediately without even waiting for the network, so you can fix it inside the system.
+Do you want me to give that method?
+
+}
+
+
+i type sudo nano /etc/netplan/*.yaml and it open 50-cloud-init.yaml. what is that
+{
+The file **`/etc/netplan/50-cloud-init.yaml`** is created by **cloud-init**, a package that automatically configures networking and other system settings during the first boot (especially in cloud or VM environments).
+
+In Ubuntu Server (and some Desktop installs), **netplan** reads `.yaml` files from `/etc/netplan/` to decide how to configure your network interfaces.
+The `50-cloud-init.yaml` file is just one of those config files — it usually comes from cloud-init and contains your network setup, like:
+
+```yaml
+network:
+    version: 2
+    ethernets:
+        enp0s3:
+            dhcp4: true
+```
+
+---
+
+### Why it matters for your issue
+
+If `50-cloud-init.yaml` is missing a correct interface name or IP configuration, `systemd-networkd-wait-online.service` can hang at boot.
+
+For example, if your VM’s interface name is **`enp0s8`** but the YAML says `enp0s3`, it will wait forever because `enp0s3` doesn’t exist.
+
+---
+
+### You can fix it by:
+
+1. **Check your interface name**:
+
+   ```bash
+   ip link
+   ```
+
+   Look for something like `enp0s3` or `ens33`.
+
+2. **Edit the YAML**:
+
+   ```bash
+   sudo nano /etc/netplan/50-cloud-init.yaml
+   ```
+
+   Make sure it matches your interface name and has:
+
+   ```yaml
+   network:
+       version: 2
+       ethernets:
+           enp0s3:   # Replace with your interface name
+               dhcp4: true
+   ```
+
+3. **Apply changes**:
+
+   ```bash
+   sudo netplan apply
+   ```
+
+---
+
+If you want, I can give you the **exact netplan config** that will make your VM boot without waiting for network at all.
+Do you want me to do that?
+
+}

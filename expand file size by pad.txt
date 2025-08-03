@@ -1,0 +1,51 @@
+Yes — in Linux, you can copy a file to itself in a way that **extends its size** by appending data or padding with zeros.
+Here are a few methods:
+
+---
+
+**1. `dd`** – duplicate file content and pad with zeros
+
+```bash
+dd if=file.bin of=file.bin bs=1 count=0 seek=10M
+```
+
+* `seek=10M` → makes the file size at least 10 MB
+* `count=0` → doesn't copy actual data, just expands
+* The extra space is filled with zeros (sparse file, no actual disk blocks until written).
+
+---
+
+**2. `truncate`** – fast way to expand
+
+```bash
+truncate -s +5M file.bin
+```
+
+* Increases file size by 5 MB without changing existing content.
+* Also produces a sparse file if the space is not actually written.
+
+---
+
+**3. `cat` to append to itself** – actually duplicates content
+
+```bash
+cat file.bin >> file.bin
+```
+
+* This will double the file size by appending its own content to itself.
+* Works with text or binary files, but can be dangerous if the file is large.
+
+---
+
+If you want a **`cp`-like behavior that copies into itself while expanding**, the closest is:
+
+```bash
+cat file >> file
+```
+
+but this *really* writes duplicate content, unlike `truncate` which only allocates space.
+
+---
+
+Do you want the file **logically bigger (sparse)** or **physically bigger with repeated content**?
+Because the command changes depending on that.

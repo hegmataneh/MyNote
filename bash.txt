@@ -1,0 +1,36 @@
+is that bash already install on my ubuntu cli command shell
+
+
+Yes! **Bash (Bourne Again SHell)** is the default command-line shell in **Ubuntu** (and most Linux distributions).  
+
+### How to Check if Bash is Installed:
+1. **Check Bash Version** (confirm it's installed):  
+   ```sh
+   bash --version
+   ```
+   - If installed, it will show something like:  
+     ```sh
+     GNU bash, version 5.1.16(1)-release (x86_64-pc-linux-gnu)
+     ```
+
+2. **Check Current Shell**:  
+   ```sh
+   echo $SHELL
+   ```
+   - If it returns `/bin/bash`, you're already using Bash.
+
+3. **List Available Shells**:  
+   ```sh
+   cat /etc/shells
+   ```
+   - This shows all installed shells (e.g., `/bin/bash`, `/bin/sh`, `/bin/zsh`).
+
+### If Bash is Missing (Unlikely in Ubuntu):
+If for some reason Bash isn't installed (very rare), you can install it with:  
+```sh
+sudo apt update && sudo apt install bash
+```
+
+But **you don’t need to**—Ubuntu comes with Bash pre-installed. 😊  
+
+Would you like help with anything Bash-related?

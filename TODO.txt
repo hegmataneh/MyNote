@@ -1,12 +1,12 @@
 
-use ipchains to forward filter ubuntu from host psiphon
+کند تر پکت ارسال کنم ببینم برنامه من میگیره
 
-how to use ipchains to pass packet from virtual machine traffic to psiphon run on host 
+ببینم راهی هست سلکت یا ای پول فقط به ازای هر پکت یکبار صدا بشه
 
-proxychains
+سعی کنم همه پکت ها را بگیرم مثل وایر شارک
 
+------------
 
-pfring
 XDP // network stack
 
 ----سناریو های تست را دربیار

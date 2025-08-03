@@ -1,7 +1,57 @@
-ipchains
-how to use ipchains to pass packet from virtual machine traffic to psiphon run on host 
+pfring
+{
+	to fix linkage error for "/usr/bin/ld : error : /usr/local/lib/libpfring.so: undefined reference to pcap_compile_nopcap'"
+	->
+	-sudo apt install libpcap-dev
+	-rebuild PF_RING
+	{
+		cd /path/to/pf_ring/source
+		make clean
+		make
+		sudo make install
+		sudo ldconfig # refresh cache
+	}
+	
+	add "/usr/local/lib" and "/usr/local/include" to project properties
+}
 
-proxychains
+proxychains // how to use ipchains to pass packet from virtual machine traffic to psiphon run on host 
+{
+	install proxychains
+	
+	sudo nano /etc/proxychains.conf
+	
+	at [ProxyList] -> 
+	{
+		comment -> socks4         127.0.0.1 9050
+		insert -> socks5 192.168.100.6 9001
+	}
+	
+	open windows firewall and open port 9001 for example
+	
+	take care of netlimiter
+	
+	at windows
+	{
+		by admin cmd insert -> netsh interface portproxy add v4tov4 listenport=9001 listenaddress=0.0.0.0 connectport=1080 connectaddress=127.0.0.1
+		// 1080 is port of psiphon3 in local proy port
+		{
+			netsh interface portproxy show all // to ckeck rule
+			netsh interface portproxy delete v4tov4 listenport=8080 listenaddress=0.0.0.0 // to remove rule
+		}
+	}
+	
+	and exec every cmd need proxy with -> sudo proxychains apt update // for exmaple
+	
+	sudo proxychains wget https://packages.ntop.org/apt/ntop.key
+	sudo proxychains apt install pfring
+	sudo proxychains apt-get update
+	sudo proxychains apt-get install -y build-essential git linux-headers-$(uname -r) libnuma-dev libnl-genl-3-dev net-tools ethtool
+	sudo proxychains curl -s -L facebook.com
+	sudo proxychains apt-get install build-essential bison flex linux-headers-$(uname -r) libnuma-dev libnl-genl-3-dev
+	sudo proxychains apt install libpcap-dev
+}
+
 
 
 virtual box ubuntu internet broken
@@ -210,6 +260,15 @@ linux trick
 	
 	sudo lsof -i UDP:1234 // show who bind to udp port
 	
+	sudo insmod module_name.ko // insert a kernel module into the running kernel
+	{
+		lsmod | grep pf_ring // Check if it’s loaded
+		reload it
+		{
+			sudo rmmod pf_ring           # remove it
+			sudo modprobe pf_ring        # load it properly (uses dependency paths)
+		}
+	}
 }
 
 

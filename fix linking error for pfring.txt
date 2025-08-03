@@ -1,0 +1,66 @@
+so at linking step ways "/usr/bin/ld : error : /usr/local/lib/libpfring.so: undefined reference to `pcap_compile_nopcap'"
+{
+	That error means `libpfring.so` expects to use `libpcap`’s symbol `pcap_compile_nopcap` but your link line didn’t pull in libpcap. Fixes (in order):
+
+### 1. Make sure libpcap dev is installed
+
+On Debian/Ubuntu:
+
+```sh
+sudo apt install libpcap-dev
+```
+
+(On other distros, install the equivalent `libpcap` development package.)
+
+### 2. Compile linking both PF\_RING and libpcap
+
+Simple working link line:
+
+```sh
+gcc -o simple_capture simple_capture.c -lpfring -lpcap
+```
+
+If that still fails, you can try using pkg-config (if `.pc` files are installed):
+
+```sh
+gcc simple_capture.c -o simple_capture $(pkg-config --cflags --libs libpfring libpcap)
+```
+
+### 3. Verify shared library dependencies
+
+Check that `libpfring.so` can see libpcap:
+
+```sh
+ldd /usr/local/lib/libpfring.so | grep pcap
+```
+
+You should see something like `libpcap.so.1 => /usr/lib/...`. If it’s missing, PF\_RING was built without properly linking against libpcap; then you need to **rebuild PF\_RING** after installing `libpcap-dev`:
+
+```sh
+cd /path/to/pf_ring/source
+make clean
+make
+sudo make install
+sudo ldconfig
+```
+
+### 4. Runtime library path (if needed)
+
+If you installed PF\_RING in `/usr/local/lib` and your system doesn’t pick it up:
+
+```sh
+sudo ldconfig          # refresh cache
+# or export for current session:
+export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+```
+
+### Summary
+
+* Install `libpcap-dev`.
+* Link with `-lpcap` (e.g., `-lpfring -lpcap`).
+* Rebuild PF\_RING if its `.so` was built without libpcap.
+* Use `ldd` and `ldconfig` to verify/load shared libs.
+
+If you paste the exact gcc command you used and the full error output after trying `-lpfring -lpcap`, I can tailor the fix further.
+
+}
