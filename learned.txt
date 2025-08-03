@@ -1,18 +1,117 @@
-pfring
+
+compiler trick
 {
-	to fix linkage error for "/usr/bin/ld : error : /usr/local/lib/libpfring.so: undefined reference to pcap_compile_nopcap'"
-	->
-	-sudo apt install libpcap-dev
-	-rebuild PF_RING
-	{
-		cd /path/to/pf_ring/source
-		make clean
-		make
-		sudo make install
-		sudo ldconfig # refresh cache
-	}
+	sudo apt-get install ninja-build	
+
+	---------
+
+	configuration properties
+		c/c++
+			advance
+	Compile as C Code (-x c)
+
+	-------
+
+	Additional Include Directories
+	$(RemoteRootDir)/$(ProjectName)/dep;
+	$(RemoteRootDir)/$(ProjectName)/header;
+	%(ClCompile.AdditionalIncludeDirectories);
+	$(RemoteHeadersDir);
+
+	--------
+
+	configuration properties
+		copy sources
+			additional sources to copy 
+	d:\My project\General projects\general\dep\general.dep:=$(RemoteRootDir)/$(ProjectName)/dep/general.dep;d:\My project\General projects\general\dep\general.use:=$(RemoteRootDir)/$(ProjectName)/dep/general.use;d:\My project\General projects\general\dep\general.inc:=$(RemoteRootDir)/$(ProjectName)/dep/general.inc		
 	
-	add "/usr/local/lib" and "/usr/local/include" to project properties
+	
+	برای لینکر بین general و پروژه ی خودم به مشکل خوردم که با اضافه کردن references در general به پروژه ی خودم مشکل لینک حل شد
+
+
+	از یک ورژن کامپایلر gcc به بعد می توان به آن آرگومان پاس داد پس حالا می خواهیم warning  های بیخوری را در سطح بلاک یا کد حذف کنیم که بیخودی خروجی کام÷ایلر شلوغ نشود میاییم از این دستورات کمک  می گیریم
+
+	#pragma GCC diagnostic ignored "-Wsign-conversion"
+	#pragma GCC diagnostic push
+	#pragma GCC diagnostic pop
+
+	https://gcc.gnu.org/onlinedocs/gcc/Diagnostic-Pragmas.html	
+	
+	
+	مشکلی که سر تابع
+	strdup
+	مشاهده شد اینست که کامپایلر بهش گیر میداد فلذا راه حلی که انجام شد اضافه کردن 
+	-D_POSIX_C_SOURCE=200809L
+	به آرگومان های کامپایلر هست که برای اینکار از این مقدار را در
+	project properties - c/cpp - command line - additional options - -D_POSIX_C_SOURCE=200809L 
+	اضافه می گردد
+
+	But also note: strdup is not part of ANSI C (C89), but it is available in POSIX. Some environments require defining a feature macro, or using a compiler flag like -D_POSIX_C_SOURCE=200809L.
+	
+	
+	-----------
+
+	ignore warning : ‘’ defined but not used [-Wunused-function]
+
+	with attribute -Wno-unused-function in
+
+	project properties
+		c/c++
+			command line
+			
+			
+	-------
+
+	CMake is a cross-platform build system generator
+	
+	
+	-----
+	
+	
+	to set app properties
+
+	extention to delete on clean -> *.dep;*.inc;*.use;*.d;*.tlog;$(ExtensionsToDeleteOnClean)
+	library dependency -> ncurses
+
+	c/c++ additional options -> -D__COMPILE 
+
+	in dep file -> #if !defined(__COMPILE) && defined(__PROJECT_NAME__) && __PROJECT_NAME__ == ##project name##
+}
+
+نکات فنی مشاهدات
+{
+	- وقتی روی پورت udp سلکت بدون تایم اوت می زنیم وقتی پکتی دریافت می کند سریع خبر می دهد ولی با تایم اوت دچار مشکل می شود و دیگر دیتا نمی خواندن
+	- اشکالی که مشاهده شد اینست که گویا ارتباط شبکه ای ماشین مجازی اشکالی دارد و باعث می شود که کندی مقطعی در دوره هایی ایجاد گردد و جریان دایم داده ایجاد نشود
+	- مجددا رسیدیم به زبان زیبای سی که الکی بامبول در میاره و دوباره ریبیلد گاهی خطا رو درست میکنه و همه چیز رو ببندیم و مجدد باز کنیم
+	- نکنه از این مشکلات نوستن در حافظه بقیه جاها رو داشته باشیم و مموری کنترل اصلا نداشته باشیم
+	
+}
+
+نکات و سرفصل هایی که مشاهده شده
+{
+	crossbar switch - جدول متقاطع پردازنده و مموری
+
+	systolic array - آرایه پردازشی
+
+	FPGA - Field Programmable Gate Array	
+	
+}
+
+14040512
+----------------
+
+network trick
+{
+	ip link // interfaces
+
+	network namespace
+	sudo ip netns add testns // make namespace like new env for testing network
+	sudo ip netns exec testns bash // exec bash app in that namespace . so every network command i exec is exec inside namespace
+
+	sudo ip netns delete testns // delete namespace
+	ip netns list // list namespaces
+
+	ip netns identify $$ // test inside namespace
 }
 
 proxychains // how to use ipchains to pass packet from virtual machine traffic to psiphon run on host 
@@ -53,10 +152,9 @@ proxychains // how to use ipchains to pass packet from virtual machine traffic t
 }
 
 
-
 virtual box ubuntu internet broken
 {
-nano /etc/netplan/01-netcfg.yaml
+	sudo nano /etc/netplan/01-netcfg.yaml
 
 network:
   version: 2
@@ -69,156 +167,168 @@ network:
 		addresses: [8.8.8.8]
 }
 
-crossbar switch - جدول متقاطع پردازنده و مموری
-
-systolic array - آرایه پردازشی
-
-FPGA - Field Programmable Gate Array
-
 To reach line-rate speeds (e.g., 10Gbps+) with high-performance packet generators
 {
-	DPDK (Data Plane Development Kit)
+	pfring
 	{
-		Description: A framework for fast packet processing in user space, directly interfacing with the NIC using poll-mode drivers.
-		Performance: Line-rate at 10/40/100Gbps with low CPU usage.
-		Packet Generator: Comes with testpmd and pktgen-dpdk (dedicated packet generator).
-		Bypass Kernel: Yes (uses uio or vfio drivers).
-		Use Case: Benchmarking NICs, network appliances, middleboxes.
-		Website: https://www.dpdk.org/
-	}
-	PF_RING ZC (Zero Copy)
-	{
-		Description: High-speed packet I/O framework by ntop, allowing zero-copy operations with compatible NICs.
-		Packet Generator: pf_ring_zc_send, or use their test apps.
-		Bypass Kernel: Yes.
-		Ubuntu Use: Works well with Ubuntu; needs compatible NIC and PF_RING installed.
-		Website: https://www.ntop.org/products/packet-capture/pf_ring/
-	}
-	XDP (eXpress Data Path) + AF_XDP
-	{
-		Description: Fast in-kernel packet processing with option to send/receive from user space using AF_XDP sockets.
-		Bypass Kernel: Partial (XDP can bypass parts of the network stack).
-		Use Case: Custom fast packet send/recv, integration with eBPF.
-		Ubuntu Support: Good on recent Ubuntu kernels (>= 5.4).
-		Documentation: https://www.kernel.org/doc/html/latest/networking/af_xdp.html
-	}
-	MoonGen
-	{
-		Description: A high-speed packet generator based on DPDK, using Lua scripts for configuration.
-		Performance: Excellent; precise control of packet rate and timing.
-		Scriptable: Yes, via Lua.
-		Bypass Kernel: Yes (uses DPDK).
-		GitHub: https://github.com/emmericp/MoonGen
-	}
-}
-
-high-performance network stacks
-{
-	libpcap
-	DPDK (Data Plane Development Kit)
-	{
-		Website: https://www.dpdk.org
-		Use case: Bypasses the Linux kernel network stack to provide user-space fast packet processing.
-		Performance: Millions of packets per second per core.
-		Tested on Ubuntu: Official support for Ubuntu (LTS versions like 20.04, 22.04).
-		Driver: Works with vfio, uio_pci_generic, or igb_uio kernel modules.
-		Pros:
-			Low latency, high throughput.
-			Huge ecosystem and NIC vendor support.
-		Cons:
-			Complex setup.
-			Not POSIX socket API compatible (requires app rewrite or use of wrappers).
-	}
-	XDP (eXpress Data Path) + AF_XDP
-	{
-		Website: https://xdp-project.net
-		Use case: High-speed packet processing inside the kernel or user-space with AF_XDP sockets.
-		Performance: Comparable to DPDK in many cases.
-		Tested on Ubuntu: Fully supported on Ubuntu 20.04+ with Linux kernel 5.4+.
-		Pros:
-			Runs inside kernel (XDP) or user space (AF_XDP).
-			Easier than DPDK in many scenarios.
-			Maintains compatibility with Linux networking.
-		Cons:
-			Less mature than DPDK in tooling and NIC driver support.
-			Requires kernel ≥ 5.3+ for AF_XDP full support.
-	}
-	netmap
-	{
-		Website: https://github.com/luigirizzo/netmap
-		Use case: Kernel-bypass packet I/O for fast traffic capture, generation, and forwarding.
-		Performance: Comparable to DPDK for some tasks.
-		Tested on Ubuntu: Works on Ubuntu but may require kernel patching or DKMS module.
-		Pros:
-			Simple API, close to BSD sockets.
-			Good for packet capture and replay.
-		Cons:
-			Not as active as DPDK/XDP.
-			Limited NIC driver support.
-	}
-	VPP (Vector Packet Processing)
-	{
-		Website: https://fd.io
-		Use case: Framework from FD.io for programmable high-speed packet processing.
-		Performance: Excellent throughput using vectorized packet processing.
-		Tested on Ubuntu: Has Ubuntu packages and documentation (20.04, 22.04).
-		Pros:
-			High-level programming and CLI tools.
-			Built-in support for NAT, IPsec, VXLAN, etc.
-		Cons:
-			Complex to configure.
-			Requires new architecture thinking.
-	}
-	Snabb
-	{
-		Website: https://snabbco.org
-		Use case: Lightweight LuaJIT-based network stack.
-		Performance: High speed, designed for NFV use cases.
-		Tested on Ubuntu: Requires some setup and is more niche.
-		Pros:
-			Minimalist, scriptable with LuaJIT.
-		Cons:
-			Not widely adopted.
-			Smaller community and support.
-	}
-	PF_RING // much faster than libpcap
-	{
-		Website: https://www.ntop.org/products/packet-capture/pf_ring/
-		Developed by: ntop
-		Type: Kernel module + user-space API
-		Use case: High-speed packet capture and analysis with or without kernel bypass.
-		Ubuntu support: Actively tested on Ubuntu 18.04, 20.04, 22.04 (DEB packages available).
-
-		✅ Features
-			High-performance packet capture: Much faster than raw libpcap.
-			Zero-copy mode: Via PF_RING ZC (requires compatible NICs).
-			Compatible with libpcap: Tools like tcpdump, Wireshark, nprobe, and ntopng can benefit with minimal change.
-			Multi-threaded: Works efficiently on multicore CPUs.
-			Supports NIC drivers: Like Intel iXGBE, i40e with custom ZC drivers.
-		
-		Recommendation for Ubuntu (stable + performance):
+		to fix linkage error for "/usr/bin/ld : error : /usr/local/lib/libpfring.so: undefined reference to pcap_compile_nopcap'"
+		->
+		-sudo apt install libpcap-dev
+		-rebuild PF_RING
 		{
-			Beginner: Try XDP + AF_XDP. It has less overhead to get started and integrates with normal Linux networking.
-			Advanced: Use DPDK if you need full user-space packet processing and best throughput.
-			Middle-ground: Try VPP if you're building complex network apps (like routers/firewalls).
+			cd /path/to/pf_ring/source
+			make clean
+			make
+			sudo make install
+			sudo ldconfig # refresh cache
 		}
+		
+		add "/usr/local/lib" and "/usr/local/include" to project properties
 	}
 	
-	🔄 PF_RING vs Others:
-		| Feature              | PF\_RING            | DPDK           | XDP + AF\_XDP     | Netmap   | VPP  |
-		| -------------------- | ------------------- | -------------- | ----------------- | -------- | ---- |
-		| Kernel bypass        | Partial (ZC mode)   | Yes            | Partial           | Yes      | Yes  |
-		| POSIX socket API     | Yes (libpcap-like)  | No             | No                | Limited  | No   |
-		| Complexity           | Low–Medium          | High           | Medium            | Medium   | High |
-		| Packet capture speed | Very high (ZC mode) | Extremely high | Very high         | High     | High |
-		| Ubuntu support       | Excellent           | Excellent      | Excellent         | Moderate | Good |
-		| Suitable for IDS     | ✅ (e.g. Suricata)  | ❌ (complex)   | ⚠️ (raw handling) | ⚠️       | ⚠️   |
 	
-	🔧 When to Use PF_RING
-		Use PF_RING when:
-		You want high-speed packet capture but stay close to libpcap tools.
-		You need to accelerate existing tools like tcpdump, nprobe, ntopng, or Suricata.
-		You want low setup complexity but high performance.
+	high-performance network stacks
+	{
+		DPDK (Data Plane Development Kit)
+		{
+			Description: A framework for fast packet processing in user space, directly interfacing with the NIC using poll-mode drivers.
+			Performance: Line-rate at 10/40/100Gbps with low CPU usage.
+			Packet Generator: Comes with testpmd and pktgen-dpdk (dedicated packet generator).
+			Bypass Kernel: Yes (uses uio or vfio drivers).
+			Use Case: Benchmarking NICs, network appliances, middleboxes.
+			Website: https://www.dpdk.org/
+		}
+		PF_RING ZC (Zero Copy)
+		{
+			Description: High-speed packet I/O framework by ntop, allowing zero-copy operations with compatible NICs.
+			Packet Generator: pf_ring_zc_send, or use their test apps.
+			Bypass Kernel: Yes.
+			Ubuntu Use: Works well with Ubuntu; needs compatible NIC and PF_RING installed.
+			Website: https://www.ntop.org/products/packet-capture/pf_ring/
+		}
+		XDP (eXpress Data Path) + AF_XDP
+		{
+			Description: Fast in-kernel packet processing with option to send/receive from user space using AF_XDP sockets.
+			Bypass Kernel: Partial (XDP can bypass parts of the network stack).
+			Use Case: Custom fast packet send/recv, integration with eBPF.
+			Ubuntu Support: Good on recent Ubuntu kernels (>= 5.4).
+			Documentation: https://www.kernel.org/doc/html/latest/networking/af_xdp.html
+		}
+		MoonGen
+		{
+			Description: A high-speed packet generator based on DPDK, using Lua scripts for configuration.
+			Performance: Excellent; precise control of packet rate and timing.
+			Scriptable: Yes, via Lua.
+			Bypass Kernel: Yes (uses DPDK).
+			GitHub: https://github.com/emmericp/MoonGen
+		}
+		
+		libpcap
+		DPDK (Data Plane Development Kit)
+		{
+			Website: https://www.dpdk.org
+			Use case: Bypasses the Linux kernel network stack to provide user-space fast packet processing.
+			Performance: Millions of packets per second per core.
+			Tested on Ubuntu: Official support for Ubuntu (LTS versions like 20.04, 22.04).
+			Driver: Works with vfio, uio_pci_generic, or igb_uio kernel modules.
+			Pros:
+				Low latency, high throughput.
+				Huge ecosystem and NIC vendor support.
+			Cons:
+				Complex setup.
+				Not POSIX socket API compatible (requires app rewrite or use of wrappers).
+		}
+		XDP (eXpress Data Path) + AF_XDP
+		{
+			Website: https://xdp-project.net
+			Use case: High-speed packet processing inside the kernel or user-space with AF_XDP sockets.
+			Performance: Comparable to DPDK in many cases.
+			Tested on Ubuntu: Fully supported on Ubuntu 20.04+ with Linux kernel 5.4+.
+			Pros:
+				Runs inside kernel (XDP) or user space (AF_XDP).
+				Easier than DPDK in many scenarios.
+				Maintains compatibility with Linux networking.
+			Cons:
+				Less mature than DPDK in tooling and NIC driver support.
+				Requires kernel ≥ 5.3+ for AF_XDP full support.
+		}
+		netmap
+		{
+			Website: https://github.com/luigirizzo/netmap
+			Use case: Kernel-bypass packet I/O for fast traffic capture, generation, and forwarding.
+			Performance: Comparable to DPDK for some tasks.
+			Tested on Ubuntu: Works on Ubuntu but may require kernel patching or DKMS module.
+			Pros:
+				Simple API, close to BSD sockets.
+				Good for packet capture and replay.
+			Cons:
+				Not as active as DPDK/XDP.
+				Limited NIC driver support.
+		}
+		VPP (Vector Packet Processing)
+		{
+			Website: https://fd.io
+			Use case: Framework from FD.io for programmable high-speed packet processing.
+			Performance: Excellent throughput using vectorized packet processing.
+			Tested on Ubuntu: Has Ubuntu packages and documentation (20.04, 22.04).
+			Pros:
+				High-level programming and CLI tools.
+				Built-in support for NAT, IPsec, VXLAN, etc.
+			Cons:
+				Complex to configure.
+				Requires new architecture thinking.
+		}
+		Snabb
+		{
+			Website: https://snabbco.org
+			Use case: Lightweight LuaJIT-based network stack.
+			Performance: High speed, designed for NFV use cases.
+			Tested on Ubuntu: Requires some setup and is more niche.
+			Pros:
+				Minimalist, scriptable with LuaJIT.
+			Cons:
+				Not widely adopted.
+				Smaller community and support.
+		}
+		PF_RING // much faster than libpcap
+		{
+			Website: https://www.ntop.org/products/packet-capture/pf_ring/
+			Developed by: ntop
+			Type: Kernel module + user-space API
+			Use case: High-speed packet capture and analysis with or without kernel bypass.
+			Ubuntu support: Actively tested on Ubuntu 18.04, 20.04, 22.04 (DEB packages available).
+
+			✅ Features
+				High-performance packet capture: Much faster than raw libpcap.
+				Zero-copy mode: Via PF_RING ZC (requires compatible NICs).
+				Compatible with libpcap: Tools like tcpdump, Wireshark, nprobe, and ntopng can benefit with minimal change.
+				Multi-threaded: Works efficiently on multicore CPUs.
+				Supports NIC drivers: Like Intel iXGBE, i40e with custom ZC drivers.
+			
+			Recommendation for Ubuntu (stable + performance):
+			{
+				Beginner: Try XDP + AF_XDP. It has less overhead to get started and integrates with normal Linux networking.
+				Advanced: Use DPDK if you need full user-space packet processing and best throughput.
+				Middle-ground: Try VPP if you're building complex network apps (like routers/firewalls).
+			}
+		}
+		
+		🔄 PF_RING vs Others:
+			| Feature              | PF\_RING            | DPDK           | XDP + AF\_XDP     | Netmap   | VPP  |
+			| -------------------- | ------------------- | -------------- | ----------------- | -------- | ---- |
+			| Kernel bypass        | Partial (ZC mode)   | Yes            | Partial           | Yes      | Yes  |
+			| POSIX socket API     | Yes (libpcap-like)  | No             | No                | Limited  | No   |
+			| Complexity           | Low–Medium          | High           | Medium            | Medium   | High |
+			| Packet capture speed | Very high (ZC mode) | Extremely high | Very high         | High     | High |
+			| Ubuntu support       | Excellent           | Excellent      | Excellent         | Moderate | Good |
+			| Suitable for IDS     | ✅ (e.g. Suricata)  | ❌ (complex)   | ⚠️ (raw handling) | ⚠️       | ⚠️   |
+		
+		🔧 When to Use PF_RING
+			Use PF_RING when:
+			You want high-speed packet capture but stay close to libpcap tools.
+			You need to accelerate existing tools like tcpdump, nprobe, ntopng, or Suricata.
+			You want low setup complexity but high performance.
+	}
 }
 
 شیوه استخراج از ai
@@ -239,10 +349,8 @@ high-performance network stacks
 socket programming trick
 {
 	select() tells you "at least one packet is ready", but maybe more are waiting.
+	
 }
-
-
-وقتی روی پورت udp سلکت بدون تایم اوت می زنیم وقتی پکتی دریافت می کند سریع خبر می دهد ولی با تایم اوت دچار مشکل می شود و دیگر دیتا نمی خواندن
 
 socat // UDP-to-TCP bridge tool
 {
@@ -270,7 +378,6 @@ linux trick
 		}
 	}
 }
-
 
 to port forward
 {
@@ -339,7 +446,7 @@ vnstat
 	to reset database
 	{
 		sudo systemctl stop vnstat
-		sudo rm /var/lib/vnstat/*
+		sudo rm /var/lib/vnstat
 		sudo systemctl start vnstat
 	}
 }
@@ -472,7 +579,6 @@ network monitoring
 				}
 			}'
 		
-		
 		}
 		
 		tshark -i enp0s3 -f "tcp port 1234" -T fields -e frame.time_epoch -e frame.len > tcp_packets.txt
@@ -483,7 +589,6 @@ network monitoring
 			-e frame.time_epoch: Timestamp in seconds
 			-e frame.len: Length of each packet in bytes
 		}
-		
 	}
 
 	hping3
@@ -660,23 +765,21 @@ network monitoring
 	iperf3, netstat -su (UDP stats), 
 }
 
-to set timezone
-{
-	timedatectl list-timezones | grep Tehran // List available timezones
-	sudo timedatectl set-timezone Asia/Tehran // Set the timezone:
-	timedatectl // Verify the change:
-}
-
 linux hack . to get report of history of cmd
 {
-	do: export HISTTIMEFORMAT='%F %T ' // to make history by timestamp
-	do: source ~/.bashrc // after export bala
-	do: history | sort // sorted history
-	do: history | grep "$(date '+%F')" | sort -k2,3 // to sort by
-	do: history -c && > ~/.bash_history && history -w // to clear history
+	history of shell command
+	{
+		history | awk '{$1=""; print $0}' | sed 's/^ *//' | sort | uniq
+		
+		do: export HISTTIMEFORMAT='%F %T ' // to make history by timestamp
+		do: source ~/.bashrc // after export bala
+		do: history | sort // sorted history
+		do: history | grep "$(date '+%F')" | sort -k2,3 // to sort by
+		do: history -c && > ~/.bash_history && history -w // to clear history
+	}
 }
 
-in midnight commander
+midnight commander trick
 {
 	F9 // menus
 	F10 // exit
@@ -692,194 +795,6 @@ to save current working dir in linux for mc(midnight commander)
 14040505
 
 ---------------
-
-get from nginx
-{
-
-	sudo apt update
-	sudo apt install nginx
-
-	edit /etc/nginx/sites-available/default
-	{
-		server {
-			listen 80 default_server;
-			listen [::]:80 default_server;
-
-			root /home/yourname/shared;
-			index index.html;
-
-			server_name _;
-
-			location / {
-				autoindex on;     # enable folder listing
-				try_files $uri $uri/ =404;
-			}
-		}
-	}
-
-	Then reload nginx:
-	sudo systemctl reload nginx
-
-	to be insure of nginx
-	sudo systemctl status nginx
-
-	if not running
-	sudo systemctl start nginx
-
-	Give Nginx access rights:
-	sudo chmod -R o+r /home/yourname/shared
-
-	Save and reload:
-	sudo nginx -t && sudo systemctl reload nginx
-
-	| Problem              | Solution                                                 |
-	| -------------------- | -------------------------------------------------------- |
-	| Connection Refused   | Check server firewall: `sudo ufw allow 80/tcp`           |
-	| 403 Forbidden        | Check permissions: `chmod -R o+rx /home/yourname/shared` |
-	| 404 Not Found        | Check filename and nginx root path                       |
-	| Directory not listed | Enable `autoindex on;` in config                         |
-
-}
-
-for /l %i in (1,1,10) do (
-    echo Download %i...
-    wget @wget http://192.168.100.60/1Gtest.tst -O 1Gtest_%i.tst 2>&1 | findstr /C:"saved" /C:"100%" >> result.txt
-    timeout /nobreak /t 5 >nul
-)
-
-try with another file server beside python3
-{
-	sudo apt update && sudo apt install samba
-
-	sudo apt install smbclient
-
-	to test samba 
-	smbclient -L //192.168.1.100 -N
-
-	to configuare samba
-	{
-		sudo nano /etc/samba/smb.conf
-		sudo cp /etc/samba/smb.conf /etc/samba/smb.conf.backup
-		sudo nano /etc/samba/smb.conf
-		[SharedFolder]
-		   path = /home/to_test_network
-		   browseable = yes
-		   read only = no
-		   guest ok = yes
-		   force user = nobody
-	}
-
-	Restart Samba Services
-	sudo systemctl restart smbd
-	sudo systemctl restart nmbd
-
-	Adjust Firewall (if applicable)
-	sudo ufw allow samba
-
-	Set up Samba User Authentication
-	Add a user to Samba (must exist as Linux user):
-	sudo smbpasswd -a yourusername
-	Modify share config:
-	[SharedFolder]
-	   path = /srv/samba/shared
-	   browseable = yes
-	   read only = no
-	   guest ok = no
-	   valid users = yourusername
-}
-
----
-
-to download 0 times file from file server
-{
-	for /l %i in (1,1,10) do @wget http://192.168.100.60:8000/1Gtest.tst -O 1Gtest_%i.tst 2>&1 | findstr /C:"100%" /C:"saved" >> result.txt
-
-	it wget file in 10 times and just write two line of result in result file
-
-	with delay deacreas of result soped
-
-	for /l %i in (1,1,10) do (
-		echo Download %i...
-		wget http://192.168.100.60:8000/1Gtest.tst -O 1Gtest_%i.tst 2>&1 | findstr /C:"saved" /C:"100%" >> result.txt
-		timeout /nobreak /t 10 >nul
-	)
-
-	// download but does not write it to disk of file system
-	{
-		for /l %i in (1,1,10) do @wget http://192.168.100.60:8000/1Gtest.tst -O NUL 2>&1 | findstr /C:"100%" /C:"saved" >> result.txt
-	}
-}
-
-to download file in windows from file server in virtual machine
-{
-
-	to use wget or aria2c to get faster because IDM and explorer downloader get file faster i should use better tools
-	{
-		first install choco package manager
-
-		Set-ExecutionPolicy Bypass -Scope Process -Force; `
-		[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; `
-		iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
-
-		then restart windows cmd
-
-		choco install wget -y
-		choco install aria2 -y
-
-		then
-
-		powershell -ExecutionPolicy Bypass -File "d:\My report\project 3\wc.ps1"
-	}
-}
-
-// slow version of get file from network
-{
-	# Configuration
-	$url = "http://192.168.100.60:8000/1Gtest.tst"   # Replace with your desired file URL
-	$output = "c:\Users\Highcom\Downloads\1Gtest.tst"
-	$results = @()
-
-	for ($i = 1; $i -le 10; $i++)
-	{
-		Write-Host "Download Run #$i"
-
-		# Delete previous file if exists
-		if (Test-Path $output) {
-			Remove-Item $output -Force
-		}
-
-		$start = Get-Date
-		Invoke-WebRequest -Uri $url -OutFile $output
-
-		or
-
-		curl -s -L $url -o $output
-
-		$end = Get-Date
-
-		$duration = ($end - $start).TotalSeconds
-		$fileSize = (Get-Item $output).Length
-		$rateMbps = [Math]::Round(($fileSize * 8) / ($duration * 1000000), 2)
-
-		$result = [PSCustomObject]@{
-			Run       = $i
-			Duration  = "{0:N2} s" -f $duration
-			Size_MB   = "{0:N2} MB" -f ($fileSize / 1MB)
-			Rate_Mbps = "$rateMbps Mbps"
-		}
-
-		$results += $result
-		Write-Output $result
-	}
-
-	# Summary
-	Write-Host "`n--- Summary of 10 Downloads ---"
-	$results | Format-Table -AutoSize
-
-	# Optional: save to CSV
-	# $results | Export-Csv -Path "download_results.csv" -NoTypeInformation
-
-}
 
 to calculate file copy duration and mean bitrate
 {
@@ -920,8 +835,6 @@ to calculate file copy duration and mean bitrate
 
 ----------
 
-اشکالی که مشاهده شد اینست که گویا ارتباط شبکه ای ماشین مجازی اشکالی دارد و باعث می شود که کندی مقطعی در دوره هایی ایجاد گردد و جریان دایم داده ایجاد نشود
-
 14040501
 
 ------------
@@ -938,20 +851,218 @@ auto complete
 	shift+zz to save and exit
 }
 
-python3 -m http.server 8000 // در فولدری که می خواهیم فایل سرور اونرو هندل کند میزینم
+file server and downloader in linux
+{
 
-wget http://192.168.100.59:8000/client2-disk1.vdi
+	python3 -m http.server 8000 // در فولدری که می خواهیم فایل سرور اونرو هندل کند میزینم
+	wget http://192.168.100.59:8000/client2-disk1.vdi // get served file like idm
+	wget http://192.168.100.59:8000/ubuntu.vdi -O output_file >wget_^Cg.txt 2>&1
+	python3 -m http.server 8000
 
-apt install ntpsec // time server
+	get from nginx
+	{
 
-ntpd
+		sudo apt update
+		sudo apt install nginx
+
+		edit /etc/nginx/sites-available/default
+		{
+			server {
+				listen 80 default_server;
+				listen [::]:80 default_server;
+
+				root /home/yourname/shared;
+				index index.html;
+
+				server_name _;
+
+				location / {
+					autoindex on;     # enable folder listing
+					try_files $uri $uri/ =404;
+				}
+			}
+		}
+
+		Then reload nginx:
+		sudo systemctl reload nginx
+
+		to be insure of nginx
+		sudo systemctl status nginx
+
+		if not running
+		sudo systemctl start nginx
+
+		Give Nginx access rights:
+		sudo chmod -R o+r /home/yourname/shared
+
+		Save and reload:
+		sudo nginx -t && sudo systemctl reload nginx
+
+		| Problem              | Solution                                                 |
+		| -------------------- | -------------------------------------------------------- |
+		| Connection Refused   | Check server firewall: `sudo ufw allow 80/tcp`           |
+		| 403 Forbidden        | Check permissions: `chmod -R o+rx /home/yourname/shared` |
+		| 404 Not Found        | Check filename and nginx root path                       |
+		| Directory not listed | Enable `autoindex on;` in config                         |
+
+	}
+
+	for /l %i in (1,1,10) do (
+		echo Download %i...
+		wget @wget http://192.168.100.60/1Gtest.tst -O 1Gtest_%i.tst 2>&1 | findstr /C:"saved" /C:"100%" >> result.txt
+		timeout /nobreak /t 5 >nul
+	)
+
+	try with another file server beside python3
+	{
+		sudo apt update && sudo apt install samba
+
+		sudo apt install smbclient
+
+		to test samba 
+		smbclient -L //192.168.1.100 -N
+
+		to configuare samba
+		{
+			sudo nano /etc/samba/smb.conf
+			sudo cp /etc/samba/smb.conf /etc/samba/smb.conf.backup
+			sudo nano /etc/samba/smb.conf
+			[SharedFolder]
+			   path = /home/to_test_network
+			   browseable = yes
+			   read only = no
+			   guest ok = yes
+			   force user = nobody
+		}
+
+		Restart Samba Services
+		sudo systemctl restart smbd
+		sudo systemctl restart nmbd
+
+		Adjust Firewall (if applicable)
+		sudo ufw allow samba
+
+		Set up Samba User Authentication
+		Add a user to Samba (must exist as Linux user):
+		sudo smbpasswd -a yourusername
+		Modify share config:
+		[SharedFolder]
+		   path = /srv/samba/shared
+		   browseable = yes
+		   read only = no
+		   guest ok = no
+		   valid users = yourusername
+	}
+
+	---
+
+	to download 0 times file from file server
+	{
+		for /l %i in (1,1,10) do @wget http://192.168.100.60:8000/1Gtest.tst -O 1Gtest_%i.tst 2>&1 | findstr /C:"100%" /C:"saved" >> result.txt
+
+		it wget file in 10 times and just write two line of result in result file
+
+		with delay deacreas of result soped
+
+		for /l %i in (1,1,10) do (
+			echo Download %i...
+			wget http://192.168.100.60:8000/1Gtest.tst -O 1Gtest_%i.tst 2>&1 | findstr /C:"saved" /C:"100%" >> result.txt
+			timeout /nobreak /t 10 >nul
+		)
+
+		// download but does not write it to disk of file system
+		{
+			for /l %i in (1,1,10) do @wget http://192.168.100.60:8000/1Gtest.tst -O NUL 2>&1 | findstr /C:"100%" /C:"saved" >> result.txt
+		}
+	}
+
+	to download file in windows from file server in virtual machine
+	{
+		to use wget or aria2c to get faster because IDM and explorer downloader get file faster i should use better tools
+		{
+			first install choco package manager
+
+			Set-ExecutionPolicy Bypass -Scope Process -Force; `
+			[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; `
+			iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+
+			then restart windows cmd
+
+			choco install wget -y
+			choco install aria2 -y
+
+			then
+
+			powershell -ExecutionPolicy Bypass -File "d:\My report\project 3\wc.ps1"
+		}
+	}
+
+	// slow version of get file from network
+	{
+		# Configuration
+		$url = "http://192.168.100.60:8000/1Gtest.tst"   # Replace with your desired file URL
+		$output = "c:\Users\Highcom\Downloads\1Gtest.tst"
+		$results = @()
+
+		for ($i = 1; $i -le 10; $i++)
+		{
+			Write-Host "Download Run #$i"
+
+			# Delete previous file if exists
+			if (Test-Path $output) {
+				Remove-Item $output -Force
+			}
+
+			$start = Get-Date
+			Invoke-WebRequest -Uri $url -OutFile $output
+
+			or
+
+			curl -s -L $url -o $output
+
+			$end = Get-Date
+
+			$duration = ($end - $start).TotalSeconds
+			$fileSize = (Get-Item $output).Length
+			$rateMbps = [Math]::Round(($fileSize * 8) / ($duration * 1000000), 2)
+
+			$result = [PSCustomObject]@{
+				Run       = $i
+				Duration  = "{0:N2} s" -f $duration
+				Size_MB   = "{0:N2} MB" -f ($fileSize / 1MB)
+				Rate_Mbps = "$rateMbps Mbps"
+			}
+
+			$results += $result
+			Write-Output $result
+		}
+
+		# Summary
+		Write-Host "`n--- Summary of 10 Downloads ---"
+		$results | Format-Table -AutoSize
+
+		# Optional: save to CSV
+		# $results | Export-Csv -Path "download_results.csv" -NoTypeInformation
+	}
+}
+
+linux time trick
+{
+	to set timezone
+	{
+		timedatectl list-timezones | grep Tehran // List available timezones
+		sudo timedatectl set-timezone Asia/Tehran // Set the timezone:
+		timedatectl // Verify the change:
+	}
+
+	apt install ntpsec // time server
+
+	ntpd // referesh time server
+}
 
 14040428
 
 ------------
-
-wget http://192.168.100.59:8000/ubuntu.vdi -O output_file >wget_^Cg.txt 2>&1
-python3 -m http.server 8000
 
 passworless sudo super user
 
@@ -959,29 +1070,26 @@ passworless sudo super user
 
 --------
 
-ip link // interfaces
-
-network namespace
-sudo ip netns add testns // make namespace like new env for testing network
-sudo ip netns exec testns bash // exec bash app in that namespace . so every network command i exec is exec inside namespace
-
-sudo ip netns delete testns // delete namespace
-ip netns list // list namespaces
-
-ip netns identify $$ // test inside namespace
-
 14040424
 
 --------------
 
-i have c language code that recieve data from udp and send it throw tcp port. so i use select on udp port to inform about recieve data. but after some time passed  select does not get any message anymore . and this time is different in any scenario i execute. so what is your opinion about this problem and how can i fix this
+socket trick
+{
 
-Ephemeral port change on sender side (less likely but real)
+	i have c language code that recieve data from udp and send it throw tcp port.
+	so i use select on udp port to inform about recieve data. but after some time passed 
+	select does not get any message anymore . and this time is different in any scenario i execute.
+	so what is your opinion about this problem and how can i fix this
 
-int error = 0;
-socklen_t errlen = sizeof(error);
-getsockopt(udp_fd, SOL_SOCKET, SO_ERROR, &error, &errlen);
-printf("Socket error: %d\n", error);
+	Ephemeral port change on sender side (less likely but real)
+
+	int error = 0;
+	socklen_t errlen = sizeof(error);
+	getsockopt(udp_fd, SOL_SOCKET, SO_ERROR, &error, &errlen);
+	printf("Socket error: %d\n", error);
+
+}
 
 14040423
 
@@ -994,20 +1102,12 @@ on windows type : route
 route add 192.168.100.0 mask 255.255.255.0 <gateway-on-192.168.1.x>
 route add 192.168.100.60 mask 255.255.255.255 192.168.1.65
 
-to set app properties
-
-extention to delete on clean -> *.dep;*.inc;*.use;*.d;*.tlog;$(ExtensionsToDeleteOnClean)
-library dependency -> ncurses
-
-c/c++ additional options -> -D__COMPILE 
 on ubuntu ip addr // , find the interface names. On Ubuntu:
 ifconfig
 
 14040420
 
 ----------
-
-in dep file -> #if !defined(__COMPILE) && defined(__PROJECT_NAME__) && __PROJECT_NAME__ == ##project name##
 
 14040422
 
@@ -1041,7 +1141,7 @@ use ncurses for TUI (text user interface)
 وقتی سوکت باز می کنیم و مثلا می خواهیم udp بفرستیم و برای آن ip , port تعیین می کنیم برای اینکه سوکت باز شده به ip bind شود تابع bind را صدا می زنیم. و نمی شود که برای یک ip , port چند سوکت باز کنیم و bindکنیم ولی برای فقط خواندن لازم نیست که bind کنیم و می شود به تعداد فایل هیا قابل باز کردن برای یک پروسس که در چند خط پایین تر تابع را بیان کردم
 برای ارسال دیتا از سوکت اگر bind شده باشد کافیست از تابع send استفاده کنیم و اگر می خواهیم روی یک ip port چندین تا سوکت بزنیم می شود از sendto استفاده کرد
 
-ulimit -n // show number of 
+ulimit -n // show number of socket can opened
 
 ulimit -n 4096 // expand file descripor
 
@@ -1050,6 +1150,7 @@ ulimit -n 4096 // expand file descripor
 ---------
 
 اگر می خواهیم مثلا اینکلود هدر ها را کامپایلر نمایش دهد باید وارنینگ مثلا در کد بگذاریم که همراه با آن هدر ها را نمایش دهد
+خلاصه می خواستم بگویم گاهی تغییرات کانفیگ اونجوری که باید نمایش داده نمی شود و باید یک تغییر دیگری همراه باشد که قبلی هم گویا اعمال شود و سمت کام÷ایلر ارسال شود
 
 14040409
 
@@ -1099,19 +1200,24 @@ that do intellisence compiler know type
 14040404
 --------------------
 
-add
-d:\workplace\config\.gitattributes
-d:\workplace\config\.gitignore
-to .git folder to ignore non usable file to staged and push into git
+man or man 3 trick
+{
+	//man command in Linux is used to display the user manual of any command that we can run on the terminal
+	
+	sudo agt-get install man
+	sudo agt-get install man-db
 
-مجددا رسیدیم به زبان زیبای سی که الکی بامبول در میاره و دوباره ریبیلد گاهی خطا رو درست میکنه و همه چیز رو ببندیم و مجدد باز کنیم
+	sudo unminimize // کار خیلی سنگینی می کرد برای man بود فکر کنم , nh; ih vh fv,c vshkd ld ;vn , dh il]dk ]dcd
+	
+	to find header in my linux
+	find /usr/include -name string.h
 
-نکنه  از این مشکلات نوستن در حافظه بقیه جاها رو داشته باشیم و مموری کنترل اصلا نداشته باشیم
+	to check function
+	grep strdup /usr/include/string.h
 
-sudo agt-get install man
-sudo agt-get install man-db
-
-sudo unminimize
+	View default include search paths for GCC
+	echo | gcc -E -Wp,-v -
+}
 
 14040402
 
@@ -1119,7 +1225,10 @@ sudo unminimize
 
 14040401
 
-sudo mount -t vboxsf workplace /home/mohsen/workplace 
+to mount share folder
+{
+	sudo mount -t vboxsf workplace /home/mohsen/workplace
+}
 
 ----------------
 
@@ -1135,6 +1244,15 @@ epoll is a Linux-specific API that offers better scalability for a large number 
 
 git
 {
+	git trick
+	{
+
+		add
+		d:\workplace\config\.gitattributes
+		d:\workplace\config\.gitignore
+		to .git folder to ignore non usable file to staged and push into git
+
+	}
 
 	https://faradars.org/courses/fvgit9609-git-github-gitlab?registered=1
 
@@ -1318,10 +1436,10 @@ do things:
 https://ubuntu.com/download/server/thank-you?version=24.04.2&architecture=amd64&lts=true
 install ubuntu
 
-sudo apt upgrade
+sudo apt upgrade // update and upgrade
 sudo apt update
 
-sudo apt install mc
+sudo apt install mc // midnight commander
 
 https://phoenixnap.com/kb/install-gcc-ubuntu
 
@@ -1335,8 +1453,6 @@ install ssh
 https://hostman.com/tutorials/how-to-install-and-configure-ssh-on-ubuntu-22-04/
 
 -------------------------------------------------------------------------
-
-sudo nano /etc/netplan/01-netcfg.yaml
 
 intellisence 
 
@@ -1384,52 +1500,19 @@ sudo sysctl -a | grep broad
 
 ----------
 
-history of shell command
-history | awk '{$1=""; print $0}' | sed 's/^ *//' | sort | uniq
+to use ssh within windows to access another linux machine
+{
+	sudo apt install openssh-server
 
-sudo apt install openssh-server
+	sudo adduser mohsen
 
-sudo adduser mohsen
-
-ssh mohsen@192.168.100.201
-
-sudo apt-get install ninja-build
-
----------
-
-configuration properties
-	c/c++
-		advance
-Compile as C Code (-x c)
-
--------
-
-Additional Include Directories
-$(RemoteRootDir)/$(ProjectName)/dep;
-$(RemoteRootDir)/$(ProjectName)/header;
-%(ClCompile.AdditionalIncludeDirectories);
-$(RemoteHeadersDir);
-
---------
-
-configuration properties
-	copy sources
-		additional sources to copy 
-d:\My project\General projects\general\dep\general.dep:=$(RemoteRootDir)/$(ProjectName)/dep/general.dep;d:\My project\General projects\general\dep\general.use:=$(RemoteRootDir)/$(ProjectName)/dep/general.use;d:\My project\General projects\general\dep\general.inc:=$(RemoteRootDir)/$(ProjectName)/dep/general.inc
+	ssh mohsen@192.168.100.201
+}
 
 -----------
 
 خروجی ها در linux console نمایان می شود
 
------------
-
-ignore warning : ‘’ defined but not used [-Wunused-function]
-
-with attribute -Wno-unused-function in
-
-project properties
-	c/c++
-		command line
 
 --------------
 
@@ -1478,38 +1561,7 @@ clean
 
 -------
 
-to find header in my linux
-find /usr/include -name string.h
-
-to check function
-grep strdup /usr/include/string.h
-
-View default include search paths for GCC
-echo | gcc -E -Wp,-v -
-
-man command in Linux is used to display the user manual of any command that we can run on the terminal
-
-مشکلی که سر تابع
-strdup
-مشاهده شد اینست که کامپایلر بهش گیر میداد فلذا راه حلی که انجام شد اضافه کردن 
--D_POSIX_C_SOURCE=200809L
-به آرگومان های کامپایلر هست که برای اینکار از این مقدار را در
-project properties - c/cpp - command line - additional options - -D_POSIX_C_SOURCE=200809L 
-اضافه می گردد
-
-But also note: strdup is not part of ANSI C (C89), but it is available in POSIX. Some environments require defining a feature macro, or using a compiler flag like -D_POSIX_C_SOURCE=200809L.
-
-----
-
-از یک ورژن کامپایلر gcc به بعد می توان به آن آرگومان پاس داد پس حالا می خواهیم warning  های بیخوری را در سطح بلاک یا کد حذف کنیم که بیخودی خروجی کام÷ایلر شلوغ نشود میاییم از این دستورات کمک  می گیریم
-
-#pragma GCC diagnostic ignored "-Wsign-conversion"
-#pragma GCC diagnostic push
-#pragma GCC diagnostic pop
-
-https://gcc.gnu.org/onlinedocs/gcc/Diagnostic-Pragmas.html
-
----------
+این کانفیگ فایل قدیمی بود که با جی سون عوض کردم و این سخت بود
 
 libyaml از ادرس 
 https://pyyaml.org/wiki/LibYAML
@@ -1520,14 +1572,6 @@ https://pyyaml.org/wiki/LibYAML
 mkdir -p make dir with all root path
 
 ls -a ~ list hiddent file and folder in address for home user directory
-
--------
-
-برای لینکر بین general و پروژه ی خودم به مشکل خوردم که با اضافه کردن references در general به پروژه ی خودم مشکل لینک حل شد
-
----------
-
-CMake is a cross-platform build system generator
 
 ------
 
