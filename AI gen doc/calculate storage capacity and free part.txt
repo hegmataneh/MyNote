@@ -1,0 +1,100 @@
+calculate storage capacity and free part
+{
+	Got it. To get **filesystem total capacity, used, and free space**, plus the **top biggest files** (and what fraction of the filesystem they consume), here are a few options.
+
+	### 1. Quick built-ins
+
+	Show all mounted filesystems with human-readable capacity/used/free:
+
+	```sh
+	df -h
+	```
+
+	For a specific path (e.g., `/`):
+
+	```sh
+	df -h /path/to/check
+	```
+
+	Show just numbers (bytes) if you need precise math:
+
+	```sh
+	df --block-size=1 /path/to/check
+	```
+
+	### 2. Top 10 largest regular files on the same filesystem and their share of total space
+
+	This script does:
+
+	* Queries total, used, free in bytes for the filesystem containing the given path.
+	* Lists top 10 largest regular files under that path (staying on the same filesystem) with their size as a percentage of total.
+
+	```sh
+	#!/bin/sh
+	target=${1:-/}  # default to /
+	# Get filesystem metadata in bytes
+	read bsize blocks bfree <<<$(stat -f -c "%S %b %f" "$target")
+	total=$((bsize * blocks))
+	free=$((bsize * bfree))
+	used=$((total - free))
+
+	# human-readable helper
+	hr() {
+	  num=$1
+	  awk 'function h(n){
+		units="B KiB MiB GiB TiB PiB"
+		split(units,u," ")
+		i=1
+		while(n>=1024 && i<6){ n/=1024; i++ }
+		printf "%.1f %s", n, u[i+1]
+	  }
+	  { h('"$num"') }' < /dev/null
+	}
+
+	echo "Filesystem containing: $target"
+	echo "Total: $(hr "$total")"
+	echo "Used:  $(hr "$used") ($(awk -v u=$used -v t=$total 'BEGIN{printf "%.1f%%", u*100/t}') )"
+	echo "Free:  $(hr "$free") ($(awk -v f=$free -v t=$total 'BEGIN{printf "%.1f%%", f*100/t}') )"
+	echo
+	echo "Top 10 largest regular files under $target (same FS):"
+	sudo find "$target" -xdev -type f -printf '%s %p\n' 2>/dev/null \
+	  | sort -nr | head -n 10 \
+	  | awk -v tot=$total '
+		{
+		  size=$1; $1=""; sub(/^ /,"");
+		  perc = size*100/tot;
+		  # human-readable size
+		  hr=size;
+		  split("B KiB MiB GiB TiB PiB", units);
+		  i=1;
+		  while(hr>=1024 && i<6){ hr/=1024; i++ }
+		  printf "%7.3f%%  %8.1f%s  %s\n", perc, hr, units[i+1], $0
+		}'
+	```
+
+	Make it executable and run:
+
+	```sh
+	chmod +x topfs.sh
+	./topfs.sh /some/mountpoint
+	```
+
+	### 3. If you only want per-directory usage (quick overview)
+
+	```sh
+	du -sh /path/to/dir/*
+	```
+
+	Or recursively sorted for the top offenders:
+
+	```sh
+	du -x /path/to/dir 2>/dev/null | sort -nr | head -n 20
+	```
+
+	`-x` keeps it on the same filesystem.
+
+	---
+
+	If you want, I can strip that into a minimal C program that calls appropriate `statvfs` and walks directories to compute the same metrics—do you want a C version?
+
+}

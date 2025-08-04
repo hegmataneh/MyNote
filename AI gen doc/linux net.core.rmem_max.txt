@@ -1,0 +1,66 @@
+please tell me most important thing aroung linux net.core.rmem_max
+{
+	The most important thing about **`net.core.rmem_max`** in Linux is:
+
+	It **sets the maximum size (in bytes) of the receive socket buffer** that applications can request via `SO_RCVBUF` (with `setsockopt()`), but it does **not** directly set the buffer size of all sockets — it only defines an *upper limit*.
+
+	---
+
+	### Key points you should know:
+
+	1. **Purpose**
+
+	   * Controls the **upper bound** for the receive buffer size of any socket.
+	   * Affects TCP, UDP, and raw sockets.
+
+	2. **Default behavior**
+
+	   * The default value is often **212992 bytes** (around 208 KB) on many distros.
+	   * Applications can request smaller buffers, but not bigger than this value unless this sysctl is increased.
+
+	3. **Relation to `net.core.rmem_default`**
+
+	   * `net.core.rmem_default` sets the default receive buffer size for new sockets.
+	   * `net.core.rmem_max` only limits the *maximum* allowed when an application explicitly requests more.
+
+	4. **UDP & packet loss**
+
+	   * For **high-throughput UDP applications**, a small `rmem_max` can cause packet drops if incoming packets fill the buffer faster than the app can read them.
+	   * Increasing it allows larger `SO_RCVBUF` to be set, which can hold more packets before overflow.
+
+	5. **Changing the value**
+
+	   * Temporary (until reboot):
+
+		 ```bash
+		 sudo sysctl -w net.core.rmem_max=26214400
+		 ```
+	   * Permanent: add to `/etc/sysctl.conf` or a file in `/etc/sysctl.d/`:
+
+		 ```
+		 net.core.rmem_max = 26214400
+		 ```
+
+		 Then:
+
+		 ```bash
+		 sudo sysctl -p
+		 ```
+
+	6. **Application-level setting still required**
+
+	   * Even if you increase `net.core.rmem_max`, applications **must** call:
+
+		 ```c
+		 setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &size, sizeof(size));
+		 ```
+
+		 to actually use a larger buffer.
+	   * Kernel doubles the requested value internally for bookkeeping (so request `2×` the desired size).
+
+	---
+
+	If you want, I can give you a **practical example** of tuning `net.core.rmem_max` for high-speed UDP capture so you avoid packet loss.
+	Do you want me to prepare that?
+
+}

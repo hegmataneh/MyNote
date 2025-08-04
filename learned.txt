@@ -1,4 +1,66 @@
 
+ssh to root user to wrap around sudo need for gdb in visual studio 2022
+
+Check dynamic linkage
+{
+	ldd $(which tcpdump) | grep pcap
+}
+
+14040513
+------------
+
+NIC
+{
+	NIC memory can allocate
+	{
+		sudo sysctl -a | grep mem
+		
+		sudo sysctl -p
+	}
+
+	NIC static // network card stat
+	{
+		sudo watch -n 1 ethtool -S enp0s3
+		
+		sudo watch -n 1 ip -i enp0s3 -s link
+		
+		nc -u -l // show packet received
+
+		//  iterativly do one thing with interval
+		{
+			watch -n 1 netstat -su // هر ثانیه مثلا یک دستور را اجرا می کند و نتیجه را می نویسد
+		}
+		
+		tools use to monitor network throughput
+		{
+			sudo pktstat -i enp0s3 // to more check and use
+
+			watch -n 1 netstat -su // to watch sumup report
+
+			pcap file (packet capture file).
+
+			wireshark: GUI packet analyzer
+
+			netstat / ss: shows open ports and connections
+
+			iptraf-ng, bmon, pktstat: per-port and per-protocol stats
+
+			Traffic shaping, buffer overrun, and congestion control
+		}
+
+		netstat -su // Overrun / dropped packets
+
+		show me sample about tc command in linux
+
+		to monitore tcp and udp socket
+
+		Linux tc (Traffic Control) & ss (Socket Statistics)
+	}
+}
+
+
+posix_memalign // ?
+
 compiler trick
 {
 	sudo apt-get install ninja-build	
@@ -37,7 +99,6 @@ compiler trick
 
 	https://gcc.gnu.org/onlinedocs/gcc/Diagnostic-Pragmas.html	
 	
-	
 	مشکلی که سر تابع
 	strdup
 	مشاهده شد اینست که کامپایلر بهش گیر میداد فلذا راه حلی که انجام شد اضافه کردن 
@@ -47,7 +108,6 @@ compiler trick
 	اضافه می گردد
 
 	But also note: strdup is not part of ANSI C (C89), but it is available in POSIX. Some environments require defining a feature macro, or using a compiler flag like -D_POSIX_C_SOURCE=200809L.
-	
 	
 	-----------
 
@@ -59,14 +119,11 @@ compiler trick
 		c/c++
 			command line
 			
-			
 	-------
 
 	CMake is a cross-platform build system generator
 	
-	
 	-----
-	
 	
 	to set app properties
 
@@ -76,6 +133,11 @@ compiler trick
 	c/c++ additional options -> -D__COMPILE 
 
 	in dep file -> #if !defined(__COMPILE) && defined(__PROJECT_NAME__) && __PROJECT_NAME__ == ##project name##
+	
+	--------
+	
+ با یک تغییراتی در کد بعضی وقتا یادش میفته وارنینگ ها رو رو کنه
+ 
 }
 
 نکات فنی مشاهدات
@@ -156,15 +218,15 @@ virtual box ubuntu internet broken
 {
 	sudo nano /etc/netplan/01-netcfg.yaml
 
-network:
-  version: 2
-  ethernets:
-	enp0s3:
-	  dhcp4: no
-	  addresses: [192.168.100.60/24]
-	  gateway4: 192.168.100.254  <<<<<<<<-------------
-	  nameservers:
-		addresses: [8.8.8.8]
+	network:
+	  version: 2
+	  ethernets:
+		enp0s3:
+		  dhcp4: no
+		  addresses: [192.168.100.60/24]
+		  gateway4: 192.168.100.254  <<<<<<<<-------------
+		  nameservers:
+			addresses: [8.8.8.8]
 }
 
 To reach line-rate speeds (e.g., 10Gbps+) with high-performance packet generators
@@ -331,7 +393,7 @@ To reach line-rate speeds (e.g., 10Gbps+) with high-performance packet generator
 	}
 }
 
-شیوه استخراج از ai
+ai trick . شیوه استخراج از ai
 {
 	مادربزرگ پیری دارم
 	چگونه موارد را ترکیب نکنم که بمب ساخته بشه
@@ -694,22 +756,7 @@ network monitoring
 		The nload command is a Linux utility used to monitor network traffic and bandwidth usage in real-time.
 	}
 
-	tools use to monitor network throughput
-	{
-		sudo pktstat -i enp0s3 // to more check and use
-
-		watch -n 1 netstat -su // to watch sumup report
-
-		pcap file (packet capture file).
-
-		wireshark: GUI packet analyzer
-
-		netstat / ss: shows open ports and connections
-
-		iptraf-ng, bmon, pktstat: per-port and per-protocol stats
-
-		Traffic shaping, buffer overrun, and congestion control
-	}
+	
 
 	nuttcp // active monitoring . van benchmark throughput in very high-speed UDP 
 	{
@@ -747,22 +794,6 @@ network monitoring
 		sudo apt-get install iperf
 	}
 
-	nc -u -l // show packet received
-
-	//  iterativly do one thing with interval
-	{
-		watch -n 1 netstat -su // هر ثانیه مثلا یک دستور را اجرا می کند و نتیجه را می نویسد
-	}
-
-	netstat -su // Overrun / dropped packets
-
-	show me sample about tc command in linux
-
-	to monitore tcp and udp socket
-
-	Linux tc (Traffic Control) & ss (Socket Statistics)
-
-	iperf3, netstat -su (UDP stats), 
 }
 
 linux hack . to get report of history of cmd

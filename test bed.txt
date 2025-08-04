@@ -9,7 +9,7 @@ tcpdump -i enp0s3 -n udp and port 12345
 tcpdump -i enp0s3 -n -q -v udp and port 1234 > /dev/null | wc -l
 
 
-sudo tshark -i enp0s3 -c 1000000 -f "udp dst port 1234" -a duration:50 -q -T fields -e udp.length -e frame.time_relative |
+sudo tshark -i enp0s3 -c 1000000 -f "udp dst port 1234" -a duration:30 -q -T fields -e udp.length -e frame.time_relative |
 awk 'BEGIN {
     total_len = 0
     count = 0
@@ -41,3 +41,38 @@ END {
     }
 }'
 
+sudo ethtool -S enp0s3
+
+
+
+sudo proxychains apt update
+
+sudo proxychains apt install libpcap-dev build-essential pkg-config
+
+
+sudo chown root:root /home/mohsen/projects/testPFRing_count_udp_v1/bin/x64/Debug/testPFRing_count_udp_v1.out
+
+sudo chmod 4755 /home/mohsen/projects/testPFRing_count_udp_v1/bin/x64/Debug/testPFRing_count_udp_v1.out
+
+
+ls -l /home/mohsen/projects/testPFRing_count_udp_v1/bin/x64/Debug/testPFRing_count_udp_v1.out
+
+
+ldd $(which tshark) | grep pcap
+
+
+
+
+sudo tshark -i enp0s3 -c 1000000 -f "udp dst port 1234" -a duration:30 -q |
+awk 'BEGIN {
+    count = 0
+}
+{
+    count += 1
+}
+END {
+        printf("Packet count: %d\n", count)
+}'
+
+
+find /usr/include -name pcap.h

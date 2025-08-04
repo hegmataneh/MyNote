@@ -1,0 +1,27 @@
+in ubuntu get me list of users
+{
+	In Ubuntu, you can list all users in several ways. The most common is to read the `/etc/passwd` file, which stores user account information.
+
+	**Command:**
+
+	```bash
+	cut -d: -f1 /etc/passwd
+	```
+
+	This will print just the usernames.
+
+	If you also want to see details such as UID, home directory, and shell:
+
+	```bash
+	cat /etc/passwd
+	```
+
+	For **only human users** (with UID ≥ 1000 and not system accounts), you can filter:
+
+	```bash
+	awk -F: '$3 >= 1000 {print $1}' /etc/passwd
+	```
+
+	Do you want me to also show you **their privilege level** so you can see which ones have `sudo` access?
+
+}

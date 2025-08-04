@@ -1,0 +1,162 @@
+i have writen c code that udp packet . my preconfiguration is i have exapnd receive buffer size with the whole data that i have been received at future. so why should my app miss some packet and with netstat i have receive "packet receive errors"
+{
+	You're on the right track thinking about buffer sizes, but UDP “packet receive errors” / drops usually come from a few classic causes even when you’ve increased the socket buffer. Here’s what’s going on, why it still happens, and how to diagnose & mitigate it.
+
+	---
+
+	## Why packets still get missed
+
+	1. **Application read too slow / buffer overflow**
+	   Even with a big `SO_RCVBUF`, if packets arrive faster than your app calls `recvfrom`/`recvmsg`, the kernel’s per-socket queue fills and further incoming packets are dropped. That shows up as receive errors. UDP has no backpressure.
+
+	2. **You didn’t actually increase the *effective* buffer enough**
+	   On Linux the value you pass to `setsockopt(SO_RCVBUF)` is doubled by the kernel. Also there are system-wide caps:
+
+	   * `net.core.rmem_max` is the maximum allowed per-socket receive buffer.
+		 You need to bump both if you want a very large buffer: e.g.
+
+	   ```sh
+	   sysctl -w net.core.rmem_max=8388608      # 8MB
+	   ```
+
+	   And in code before bind:
+
+	   ```c
+	   int buf = 4 * 1024 * 1024; // request 4MB
+	   setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &buf, sizeof(buf));
+	   ```
+
+	   (Kernel will allocate \~8MB if allowed.)
+
+	3. **Socket not polled/served promptly**
+	   If you’re blocking in some long computation or not using an event-driven mechanism (e.g., you wait too long between reads), the incoming queue backs up. Use `epoll`/`poll`/non-blocking + tight loop to drain as fast as possible.
+
+	4. **Hardware / NIC errors (checksum, etc.)**
+	   Some “receive errors” might be from corrupted packets dropped by the NIC or kernel-level checksum failures. These can appear in interface stats. Use `ethtool -S <iface>` or `ifconfig`/`ip -s link` to correlate low-level drops.
+
+	5. **Fragmentation / oversized datagrams**
+	   If sender sends UDP packets larger than the path MTU, they get fragmented; if any fragment is lost, the whole datagram is unusable. Also if you `recvfrom` into a buffer smaller than the UDP datagram and don’t check flags like `MSG_TRUNC`, you can get truncated drops or misunderstandings.
+
+	6. **Socket options / sizing semantics misunderstandings**
+	   You might think you’ve expanded the buffer “for all future data,” but if you set it after some traffic or incorrectly check the returned value you might be working with less than you expect. Always `getsockopt` to verify what you actually got.
+
+	---
+
+	## Diagnostic checklist
+
+	1. **Check UDP stats**
+
+	   ```sh
+	   netstat -su
+	   ```
+
+	   Look for “packets received” vs “packet receive errors” / “dropped.” That tells you if the kernel is explicitly dropping due to queue overflow vs other issues.
+
+	2. **Verify socket buffer size** in your program:
+	   After `setsockopt`, do:
+
+	   ```c
+	   int actual;
+	   socklen_t len = sizeof(actual);
+	   getsockopt(fd, SOL_SOCKET, SO_RCVBUF, &actual, &len);
+	   printf("Effective receive buffer: %d\n", actual);
+	   ```
+
+	3. **Capture traffic externally** with `tcpdump` and compare what the sender sent vs what your app got. That isolates whether packets are lost on the wire/kernel side or simply not read. Example:
+
+	   ```sh
+	   tcpdump -i eth0 udp port 12345 -w dump.pcap
+	   ```
+
+	4. **Monitor interface/NIC stats**:
+
+	   ```sh
+	   ip -s link show eth0
+	   ethtool -S eth0
+	   ```
+
+	   Look for CRC errors, frame errors, dropped packets at interface level.
+
+	5. **Time profiling your reader**: ensure your receive loop is as tight as needed. Example pattern:
+
+	   ```c
+	   while (1) {
+		   ssize_t n = recvfrom(fd, buf, BUF_SZ, 0, (struct sockaddr*)&src, &addrlen);
+		   if (n < 0) {
+			   if (errno == EINTR) continue;
+			   perror("recvfrom");
+			   break;
+		   }
+		   process(buf, n);
+	   }
+	   ```
+
+	   If `process(...)` is expensive, hand it off to a worker and keep draining the socket.
+
+	6. **Enable overflow visibility (Linux >=3.9)**
+	   You can enable `SO_RXQ_OVFL` via ancillary data to detect if packets were dropped due to socket queue overflow. That helps distinguish overflow vs other errors.
+
+	---
+
+	## Suggestions to mitigate
+
+	* **Increase `net.core.rmem_max`** and then set a large `SO_RCVBUF` before bind.
+	* **Use a dedicated reader thread** that only does `recvfrom` and pushes into a lock-free queue for processing.
+	* **Use `SO_TIMESTAMPING`** to detect jitter/lateness if timing matters.
+	* **Consider UDP batching / receive-multiple APIs** if on a platform that supports it (e.g., `recvmmsg`), so you pull several datagrams per syscall.
+	* **Rate limit sender** or implement application-layer sequencing and recovery if losing some packets is unacceptable.
+
+	---
+
+	## Example minimal setup
+
+	```c
+	int fd = socket(AF_INET, SOCK_DGRAM, 0);
+
+	// bump kernel limit beforehand (or via sysctl): net.core.rmem_max
+
+	int buf = 4 * 1024 * 1024; // request 4MB
+	if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &buf, sizeof(buf)) < 0) {
+		perror("setsockopt SO_RCVBUF");
+	}
+
+	// verify
+	int actual;
+	socklen_t len = sizeof(actual);
+	getsockopt(fd, SOL_SOCKET, SO_RCVBUF, &actual, &len);
+	printf("SO_RCVBUF is %d\n", actual); // kernel doubles the request
+
+	struct sockaddr_in addr = {0};
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(12345);
+	addr.sin_addr.s_addr = INADDR_ANY;
+
+	if (bind(fd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
+		perror("bind");
+		exit(1);
+	}
+
+	char buf_in[65536];
+	while (1) {
+		ssize_t n = recvfrom(fd, buf_in, sizeof(buf_in), 0, NULL, NULL);
+		if (n < 0) {
+			if (errno == EINTR) continue;
+			perror("recvfrom");
+			break;
+		}
+		// handle n bytes
+	}
+	```
+
+	---
+
+	## Summary
+
+	* “Packet receive errors” usually mean the kernel dropped packets (overflow or corruption).
+	* Ensure the socket buffer is truly large (check system limits), read fast enough (use efficient polling/threads), and rule out NIC/link errors.
+	* Use external capture (tcpdump) to confirm where the loss occurs, and inspect `netstat -su` / interface stats to classify the error.
+	* Optional: use `recvmmsg` to batch reads, and ancillary flags (e.g., `SO_RXQ_OVFL`) to detect overflow.
+
+	If you share the relevant snippet of your receive loop and how you set the buffer, I can point out where it’s likely getting saturated or suggest a concrete fix.
+
+}

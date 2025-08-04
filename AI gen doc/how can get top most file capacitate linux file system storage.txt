@@ -1,0 +1,44 @@
+how can get top most file capacitate linux file system storage
+{
+	If you want to find the **largest files** in a Linux filesystem, you can use the `find` command combined with `du` or `ls` to sort them by size.
+
+	For example, to find the **top 10 largest files** on your system starting from root (`/`):
+
+	```bash
+	sudo find / -type f -exec du -h {} + 2>/dev/null | sort -rh | head -n 10
+	```
+
+	**Explanation:**
+
+	* `find / -type f` → searches for files (not directories) starting from `/`
+	* `-exec du -h {} +` → runs `du -h` (disk usage, human readable) on each file found
+	* `2>/dev/null` → hides permission errors
+	* `sort -rh` → sorts results in human-readable format, largest first
+	* `head -n 10` → shows only the top 10
+
+	---
+
+	If you want a **faster method** without walking every file, use `ncdu` (interactive tool):
+
+	```bash
+	sudo apt install ncdu   # Debian/Ubuntu
+	sudo ncdu /
+	```
+
+	`ncdu` will show you a navigable list of directories/files sorted by size.
+
+	---
+
+	If you only want files (not directories) and **in a specific filesystem**, you can restrict `find` with `-xdev`:
+
+	```bash
+	sudo find / -xdev -type f -exec du -h {} + 2>/dev/null | sort -rh | head -n 10
+	```
+
+	`-xdev` → stays on one filesystem, avoids mounted drives.
+
+	---
+
+	Do you want me to give you a **version that works super fast on multi-TB systems** using `locate` instead of `find`? That would avoid scanning the whole disk every time.
+
+}

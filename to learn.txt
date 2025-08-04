@@ -3,6 +3,10 @@ to learn
 
 	linux
 
+	bgp.tools ?
+	
+	how to close ipv6
+
 	Livelock
 
 	vectorization techniques for performance
@@ -16,6 +20,7 @@ to learn
 
 	If you don’t want to code all in C, you can make your C app output data and pipe it to:
 
+	art of monitoring
 
 	از نظر نوع و تکنیک، حملات “UDP NULL” با سهم ۵۹.۵۳٪ غالب هستند. پس از آن “DNS Amplification” با حدود ۱۵٪ و “TCP Malformed” با ۱۴٪ در جایگاه‌های بعدی قرار دارند. حملاتی با تکنیک‌هایی نظیر ACK Flood، حمله ترکیبی بر‌اساس DNS، و سایر روش‌ها نیز به ترتیب مطرح هستند. این تنوع روش‌ها نشان می‌دهد که مهاجمان تلاش داشته‌اند از انواع مختلفی از حملات برای ایجاد اختلال استفاده کنند.
 

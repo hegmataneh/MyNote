@@ -1,0 +1,169 @@
+in ubuntu get me list of users
+{
+	In Ubuntu, you can list all users in several ways. The most common is to read the `/etc/passwd` file, which stores user account information.
+
+	**Command:**
+
+	```bash
+	cut -d: -f1 /etc/passwd
+	```
+
+	This will print just the usernames.
+
+	If you also want to see details such as UID, home directory, and shell:
+
+	```bash
+	cat /etc/passwd
+	```
+
+	For **only human users** (with UID ≥ 1000 and not system accounts), you can filter:
+
+	```bash
+	awk -F: '$3 >= 1000 {print $1}' /etc/passwd
+	```
+
+	Do you want me to also show you **their privilege level** so you can see which ones have `sudo` access?
+
+}
+
+check if user has privilage to do root things
+{
+	In Ubuntu, the usual way to check if a user has root privileges is to see if they are in the **`sudo`** group (or `admin` on older releases).
+
+	**To check a specific user:**
+
+	```bash
+	groups username
+	```
+
+	If `sudo` appears in the list, that user can run commands with `sudo` (root privileges).
+
+	**Example:**
+
+	```bash
+	groups mohsen
+	# output might be: mohsen : mohsen sudo
+	```
+
+	**To list all users with sudo privileges:**
+
+	```bash
+	getent group sudo
+	```
+
+	This shows the group name, group ID, and all members.
+
+	**Alternative check (direct sudoers file scan):**
+
+	```bash
+	sudo grep -E '^%sudo|username' /etc/sudoers /etc/sudoers.d/* 2>/dev/null
+	```
+
+	If you want, I can give you a **single command** that lists **only users who can do root things**.
+	Do you want me to prepare that?
+
+}
+
+what is default password for root user
+{
+	On Ubuntu, the **root account has no default password** — by design it’s **locked** for security reasons.
+
+	* You **cannot log in directly as root** by default.
+	* Instead, Ubuntu expects you to use your own user account with `sudo` for administrative tasks.
+
+	If you try:
+
+	```bash
+	su -
+	```
+
+	You’ll get:
+
+	```
+	su: Authentication failure
+	```
+
+	because there’s no usable root password.
+
+	If you want to set a root password (enabling `su` login as root):
+
+	```bash
+	sudo passwd root
+	```
+
+	It will prompt you to enter and confirm a new password for the root account.
+
+	Do you want me to also show you **how to temporarily enable root login** without permanently setting a password?
+
+}
+
+is that possible to ssh with root user to server. and how can make it possible
+{
+	Yes — you can SSH directly as `root` to a server, but in **Ubuntu** it’s disabled by default for security reasons.
+	You have to **enable it in the SSH server configuration** and make sure the root account has a password or key set.
+
+	---
+
+	### **Steps to allow SSH login as root in Ubuntu**
+
+	1. **Set a password for root (if not set)**
+
+	   ```bash
+	   sudo passwd root
+	   ```
+
+	   Enter a strong password.
+
+	---
+
+	2. **Edit the SSH configuration**
+
+	   ```bash
+	   sudo nano /etc/ssh/sshd_config
+	   ```
+
+	   Find and change:
+
+	   ```
+	   PermitRootLogin prohibit-password
+	   ```
+
+	   to:
+
+	   ```
+	   PermitRootLogin yes
+	   ```
+
+	   *(You can also use `without-password` to only allow key-based login.)*
+
+	---
+
+	3. **Restart SSH service**
+
+	   ```bash
+	   sudo systemctl restart ssh
+	   ```
+
+	---
+
+	4. **SSH as root from client**
+
+	   ```bash
+	   ssh root@server_ip
+	   ```
+
+	---
+
+	**⚠ Security note:**
+	Direct root SSH login is a major security risk — it’s safer to use:
+
+	* Key-based authentication (`PermitRootLogin without-password`)
+	* Or login as a normal user, then `sudo` for root actions.
+
+	---
+
+	If you want, I can give you a **configuration that only allows root login with an SSH key** and blocks password logins, which is much safer.
+	Do you want that version?
+
+}
+
