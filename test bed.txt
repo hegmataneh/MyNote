@@ -9,7 +9,7 @@ tcpdump -i enp0s3 -n udp and port 12345
 tcpdump -i enp0s3 -n -q -v udp and port 1234 > /dev/null | wc -l
 
 
-sudo tshark -i enp0s3 -c 1000000 -f "udp dst port 1234" -a duration:30 -q -T fields -e udp.length -e frame.time_relative |
+sudo tshark -i enp0s3 -c 10000000 -f "udp dst port 1234" -a duration:140 -q -T fields -e udp.length -e frame.time_relative |
 awk 'BEGIN {
     total_len = 0
     count = 0
@@ -40,6 +40,11 @@ END {
         printf("No packets received.\n")
     }
 }'
+
+
+timeout 20 tcpdump -i enp0s3 -n -q udp and port 1234 2>/dev/null | wc -l
+
+timeout 140 tcpdump -i enp0s3 -n -q -v udp and port 1234 > /dev/null
 
 sudo ethtool -S enp0s3
 

@@ -1,7 +1,7 @@
 
 ssh to root user to wrap around sudo need for gdb in visual studio 2022
 
-Check dynamic linkage
+Check dynamic linkage and dependencies
 {
 	ldd $(which tcpdump) | grep pcap
 }
