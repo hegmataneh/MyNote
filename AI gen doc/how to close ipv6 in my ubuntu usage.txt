@@ -1,0 +1,104 @@
+how to close ipv6 in my ubuntu usage
+{
+You can disable IPv6 on Ubuntu in several ways depending on whether you want it disabled temporarily, permanently, or just for a single interface.
+
+---
+
+### 1. **Temporary Disable (until next reboot)**
+
+Run these commands:
+
+```bash
+sudo sysctl -w net.ipv6.conf.all.disable_ipv6=1
+sudo sysctl -w net.ipv6.conf.default.disable_ipv6=1
+sudo sysctl -w net.ipv6.conf.lo.disable_ipv6=1
+```
+
+Check:
+
+```bash
+ip a | grep inet6
+```
+
+No IPv6 addresses should be listed.
+
+---
+
+### 2. **Permanent Disable using sysctl**
+
+Edit the sysctl configuration:
+
+```bash
+sudo nano /etc/sysctl.conf
+```
+
+Add these lines at the end:
+
+```
+net.ipv6.conf.all.disable_ipv6 = 1
+net.ipv6.conf.default.disable_ipv6 = 1
+net.ipv6.conf.lo.disable_ipv6 = 1
+```
+
+Apply changes:
+
+```bash
+sudo sysctl -p
+```
+
+---
+
+### 3. **Disable per Network Interface (GRUB method)**
+
+This disables IPv6 system-wide via kernel boot parameters.
+
+1. Edit GRUB:
+
+   ```bash
+   sudo nano /etc/default/grub
+   ```
+2. Find the line starting with:
+
+   ```
+   GRUB_CMDLINE_LINUX_DEFAULT=
+   ```
+
+   Append:
+
+   ```
+   ipv6.disable=1
+   ```
+
+   Example:
+
+   ```
+   GRUB_CMDLINE_LINUX_DEFAULT="quiet splash ipv6.disable=1"
+   ```
+3. Update GRUB and reboot:
+
+   ```bash
+   sudo update-grub
+   sudo reboot
+   ```
+
+---
+
+### 4. **Disable on a specific interface only**
+
+If you only want to disable IPv6 on `enp0s3`:
+
+```bash
+sudo sysctl -w net.ipv6.conf.enp0s3.disable_ipv6=1
+```
+
+To make it permanent, add to `/etc/sysctl.conf`:
+
+```
+net.ipv6.conf.enp0s3.disable_ipv6 = 1
+```
+
+---
+
+Which one do you want—**temporary, permanent for all interfaces, or just for one interface?**
+
+}

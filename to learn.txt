@@ -6,7 +6,7 @@ to learn
 	bgp.tools ?
 	
 	how to close ipv6
-
+	
 	Livelock
 
 	vectorization techniques for performance
@@ -42,7 +42,6 @@ to learn
 	psfax
 	
 	
-	false positive and false negative and other thing in that subject
 
 }
 
