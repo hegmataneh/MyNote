@@ -1,0 +1,92 @@
+how to add pf_ringctl at my path. i means the path that every time i type pf_ringctl it run from some specific path
+{
+To have `pf_ringctl` run from anywhere when you type `pf_ringctl` in the terminal, you need to add its directory to your system’s PATH environment variable.
+
+Here’s how to do it step-by-step:
+
+---
+
+### 1. Find where `pf_ringctl` is installed
+
+For example, if you compiled and installed PF\_RING from source, `pf_ringctl` is usually installed under `/usr/local/bin/` or `/usr/bin/`, or sometimes inside the PF\_RING build directory like `/usr/local/pf_ring/tools/` or `/usr/local/pf_ring/`.
+
+Run this to find it:
+
+```bash
+sudo find / -name pf_ringctl 2>/dev/null
+```
+
+Suppose it outputs:
+
+```
+/usr/local/pf_ring/tools/pf_ringctl
+```
+
+---
+
+### 2. Add the directory to your PATH
+
+If the binary is in `/usr/local/pf_ring/tools/`, you want to add this directory to your PATH.
+
+Open your shell profile file:
+
+* For bash: `~/.bashrc` or `~/.bash_profile`
+* For zsh: `~/.zshrc`
+
+Example using bash:
+
+```bash
+nano ~/.bashrc
+```
+
+Add this line at the end:
+
+```bash
+export PATH=$PATH:/usr/local/pf_ring/tools
+```
+
+Save and exit (`Ctrl+O`, `Enter`, `Ctrl+X` in nano).
+
+---
+
+### 3. Reload your profile or restart terminal
+
+```bash
+source ~/.bashrc
+```
+
+---
+
+### 4. Verify
+
+Now, type:
+
+```bash
+which pf_ringctl
+```
+
+It should show `/usr/local/pf_ring/tools/pf_ringctl`.
+
+And running
+
+```bash
+pf_ringctl
+```
+
+should execute the command regardless of your current directory.
+
+---
+
+If you want, you can also create a symbolic link (shortcut) to a directory already in your PATH like `/usr/local/bin`:
+
+```bash
+sudo ln -s /usr/local/pf_ring/tools/pf_ringctl /usr/local/bin/pf_ringctl
+```
+
+Then you don't have to modify PATH.
+
+---
+
+If you want, I can help you with commands tailored to your actual install location. Just let me know the path where your `pf_ringctl` binary is!
+
+}

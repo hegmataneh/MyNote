@@ -1,3 +1,13 @@
+to solve loading symbol /lib/x86_64-linux-gnu/libc.so.6 and /lib64/Id-linux-x86-64.so.2
+{
+	i install sudo apt-get update -y , sudo apt-get install -y libc6 in linux
+}
+
+
+اجرای برنامم خیلی طول می کشید سر  لود
+ld-linux-x86-64.so.2
+که کاری کردم که با یوزر root بروم در اس اس اچ در نتیجه فایل را می دید
+فکر کنم مشکلش اینطوری رفع شد
 
 ssh to root user to wrap around sudo need for gdb in visual studio 2022
 

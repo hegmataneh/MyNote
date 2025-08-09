@@ -1,0 +1,110 @@
+whats that visual studio says loading symbols for for module /lib64/Id-linux-x86-64.so.2. and how to cancel it or fix it to no bother me anymore
+{
+Excellent—let’s clarify what you’re seeing and how to disable it.
+
+When you see:
+
+> *Loading symbols for module /lib64/ld-linux-x86-64.so.2* (note your typo: you wrote `Id` instead of `ld`)
+
+It’s Visual Studio’s debugger downloading *symbol* information for that module. Symbols are the “debug info” (like function names and source line mappings) so you can step into or see stack frames *inside* those system libraries.
+
+For system libraries like `/lib64/ld-linux-x86-64.so.2` (the dynamic linker itself), you usually **don’t care** about symbols unless you're debugging glibc itself.
+
+Visual Studio (especially when debugging remotely on Linux) can try to get symbols for all loaded modules. This is slow and noisy.
+
+---
+
+## Why does it happen?
+
+When your program loads, the debugger:
+
+1. Enumerates all loaded shared objects (`.so` files).
+2. Tries to load debugging symbols for them.
+3. Downloads them (from the remote Linux machine to your Windows) if using remote debugging.
+
+This can cause “Loading symbols for...” spam in the output window or status bar.
+
+---
+
+## How to disable or reduce it in Visual Studio
+
+Here are the main ways to stop it:
+
+---
+
+### 1️⃣ Turn off automatic symbol loading for all modules except yours
+
+This is the usual approach.
+
+1. Go to **Tools** > **Options**.
+2. Expand **Debugging** > **Symbols**.
+3. Uncheck **Load all modules, unless excluded**.
+4. (Optional) Add exclusions or inclusions:
+
+   * Add your project's .so/.exe as an explicit inclusion.
+   * Exclude system paths if needed.
+
+Now Visual Studio won't load symbols for system libraries.
+
+---
+
+### 2️⃣ Disable Microsoft Symbol Servers
+
+If it's pulling symbols from online:
+
+1. Same **Tools** > **Options** > **Debugging** > **Symbols**.
+2. Uncheck **Microsoft Symbol Servers**.
+
+This stops attempts to fetch Microsoft symbols (less relevant for Linux, but can reduce clutter).
+
+---
+
+### 3️⃣ Control Symbol Loading in Debug Session
+
+While debugging:
+
+* Open the **Modules** window (Debug > Windows > Modules).
+* Right-click the module (e.g. `/lib64/ld-linux-x86-64.so.2`).
+* Choose **Symbol Load Information** or **Load Symbols**.
+* You can set it to **Never load symbols for this module**.
+
+---
+
+### 4️⃣ Use Symbol Cache
+
+If you still want some symbols (like your own app), set up a **local cache**:
+
+* Still in **Tools** > **Options** > **Debugging** > **Symbols**.
+* Add a local folder as your cache.
+* This reduces repeated downloading.
+
+---
+
+### 5️⃣ For Remote Linux Debugging
+
+If you're using the **Linux Workload**:
+
+* Visual Studio sometimes copies symbols from the Linux box.
+* You can set **project properties** > **Debugging** > **Enable Symbol Loading** to **False** (this option depends on your VS version).
+
+---
+
+## TL;DR
+
+✅ Go to *Tools > Options > Debugging > Symbols*.
+✅ Uncheck *Load all modules, unless excluded*.
+✅ Add your own binaries if needed.
+
+That will stop the annoying *Loading symbols for /lib64/ld-linux-x86-64.so.2* messages.
+
+---
+
+If you tell me your **Visual Studio version** (e.g. 2022, 2019) and whether you're debugging:
+
+* Native C++?
+* Managed .NET?
+* Remote Linux?
+
+—I can give you *even more specific steps*.
+
+}

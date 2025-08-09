@@ -23,5 +23,5 @@ title SSH to 192.168.100.61
 ssh mohsen@192.168.100.61
 
 9- See www.geeksforgeeks.org/linux-unix
-10- گزارش کار روزانه برای حمیدی
-11- 
+
+11- backup projects
