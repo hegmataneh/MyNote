@@ -1,3 +1,15 @@
+از عمو محمد یاد گرفتم که می شود تع خط مثلا اسلش را /**/ گذاشت تا در مرتب سازی بهش دست نزدند
+
+14040520
+----------
+
+دستور
+chroot
+برای ایجاد یک root جدید مثلا برای یک ssh خاص
+
+14040518
+-------
+
 to solve loading symbol /lib/x86_64-linux-gnu/libc.so.6 and /lib64/Id-linux-x86-64.so.2
 {
 	i install sudo apt-get update -y , sudo apt-get install -y libc6 in linux

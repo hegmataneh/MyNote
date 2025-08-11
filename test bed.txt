@@ -80,16 +80,3 @@ END {
 find /usr/include -name pcap.h
 
 
-
-/home/mohsen/PF_RING/package/usr/bin/pf_ringctl
-
-
-sudo proxychains wget https://packages.ntop.org/apt/ntop.key
-sudo apt-key add ntop.key
-sudo echo "deb http://packages.ntop.org/apt/$(lsb_release -sc)/ $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/ntop.list
-sudo echo "deb http://packages.ntop.org/apt/all/ all main" | sudo tee -a /etc/apt/sources.list.d/ntop.list
-sudo proxychains apt update
-sudo proxychains apt-get install pfring-dkms
-
-
-/home/mohsen/PF_RING/package/usr/bin/
