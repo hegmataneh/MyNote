@@ -1,0 +1,43 @@
+in c language code when do signal( SIGINT , cleanup_and_exit ) is that necessary to undo it somehow
+{
+No, you normally don’t need to “undo” a `signal(SIGINT, cleanup_and_exit)` in C.
+
+Here’s why:
+
+1. **Process lifetime scope**
+   The signal handler registration is valid only for the lifetime of your process. When your process exits (either normally via `exit()` or because of a signal), the operating system discards all of its signal dispositions. So nothing “sticks around” after your program terminates.
+
+2. **Resetting a handler manually**
+   If you want to temporarily override the handler and then restore the old one, you can save the previous disposition returned by `signal()` and reinstall it later:
+
+   ```c
+   void (*old_handler)(int);
+
+   old_handler = signal(SIGINT, cleanup_and_exit);
+   // ... critical section
+   signal(SIGINT, old_handler);  // restore
+   ```
+
+   This is useful if your code is part of a library or plugin and you don’t want to leave a custom handler active once your code finishes.
+
+3. **One-shot behavior**
+   On some older UNIX systems, after a signal handler ran once, the disposition reset to default. Modern POSIX systems keep the handler until you change it explicitly.
+
+4. **If you don’t restore**
+   Nothing bad happens if you leave your handler installed. Once your process ends, it’s gone anyway. The only case where “undo” matters is if your program keeps running but you want to go back to default behavior:
+
+   ```c
+   signal(SIGINT, SIG_DFL); // restore default action (usually terminate)
+   ```
+
+   Or if you want to ignore:
+
+   ```c
+   signal(SIGINT, SIG_IGN);
+   ```
+
+👉 So the answer: **Not necessary to undo for cleanup at program exit**, but you may want to restore the previous handler if you need to revert behavior while still running.
+
+Do you want me to show you how to do the same thing with the more modern `sigaction()` API (recommended over `signal()`)?
+
+}

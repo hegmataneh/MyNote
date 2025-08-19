@@ -1,6 +1,12 @@
 to learn
 {
 
+	آیا ترد های ما را روی کور های خالی می اندازد اگر داشته باشد
+
+	ps . psfax
+	
+	lsof
+
 	linux
 
 	bgp.tools ?

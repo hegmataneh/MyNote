@@ -1,0 +1,41 @@
+can pcap_compile input get ranje of port
+{
+Yes — `pcap_compile()` can take a filter expression that specifies a **range of ports**, because its input syntax is the same as the **tcpdump filter language** (BPF syntax).
+
+For example:
+
+* Single port:
+
+```c
+"tcp port 80"
+```
+
+* Multiple ports (OR):
+
+```c
+"tcp port 80 or tcp port 443"
+```
+
+* Range of ports:
+
+```c
+"tcp portrange 1000-2000"
+```
+
+So if you want to filter **all TCP packets with source or destination ports between 1000 and 2000**, you’d write:
+
+```c
+"tcp portrange 1000-2000"
+```
+
+Similarly for UDP:
+
+```c
+"udp portrange 5000-6000"
+```
+
+This works directly with `pcap_compile(handle, &fp, filter_exp, 0, net);`.
+
+Do you want me to show you a **C example with `pcap_compile`** using a port range?
+
+}
