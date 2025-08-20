@@ -1,0 +1,116 @@
+c language socket recv function with no wait for packet
+{
+In C, if you want `recv()` (or `recvfrom()`) on a socket **not to wait** for packets (non-blocking), you have a few options:
+
+---
+
+### **Option 1: Set the socket to non-blocking mode**
+
+That way `recv()` will return immediately:
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
+
+int main() {
+    int sock;
+    struct sockaddr_in addr;
+    char buffer[1024];
+    ssize_t n;
+
+    sock = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sock < 0) {
+        perror("socket");
+        exit(1);
+    }
+
+    // Bind to port 1234
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = INADDR_ANY;
+    addr.sin_port = htons(1234);
+
+    if (bind(sock, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
+        perror("bind");
+        exit(1);
+    }
+
+    // Set non-blocking mode
+    int flags = fcntl(sock, F_GETFL, 0);
+    fcntl(sock, F_SETFL, flags | O_NONBLOCK);
+
+    while (1) {
+        n = recv(sock, buffer, sizeof(buffer) - 1, 0);
+        if (n < 0) {
+            perror("recv");
+            // Will print "Resource temporarily unavailable" (EAGAIN) if no data
+        } else if (n == 0) {
+            printf("Connection closed\n");
+            break;
+        } else {
+            buffer[n] = '\0';
+            printf("Received: %s\n", buffer);
+        }
+
+        sleep(1); // avoid busy loop
+    }
+
+    close(sock);
+    return 0;
+}
+```
+
+* If no packet is available, `recv()` returns `-1` and sets `errno = EAGAIN` or `EWOULDBLOCK`.
+
+---
+
+### **Option 2: Use `MSG_DONTWAIT` flag with `recv()`**
+
+Instead of making the socket non-blocking permanently:
+
+```c
+n = recv(sock, buffer, sizeof(buffer)-1, MSG_DONTWAIT);
+```
+
+This tells `recv()` **for this call only**: return immediately if no packet is waiting.
+
+---
+
+### **Option 3: Use `select()` or `poll()`**
+
+Check if data is available before calling `recv()`.
+Example with `select()`:
+
+```c
+fd_set fds;
+struct timeval tv;
+
+FD_ZERO(&fds);
+FD_SET(sock, &fds);
+tv.tv_sec = 0;
+tv.tv_usec = 0;  // no wait
+
+int ret = select(sock + 1, &fds, NULL, NULL, &tv);
+if (ret > 0 && FD_ISSET(sock, &fds)) {
+    n = recv(sock, buffer, sizeof(buffer)-1, 0);
+    buffer[n] = '\0';
+    printf("Received: %s\n", buffer);
+} else {
+    printf("No data available\n");
+}
+```
+
+---
+
+✅ **Quickest way**:
+If you only want `recv()` to never block, just use **`MSG_DONTWAIT`**.
+If you need continuous non-blocking behavior, set the socket with **`O_NONBLOCK`**.
+
+Do you want me to give you a **minimal example that just dumps UDP packets at port 1234 without waiting** (using `MSG_DONTWAIT`)?
+
+}

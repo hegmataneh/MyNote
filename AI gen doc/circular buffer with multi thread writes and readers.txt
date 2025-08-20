@@ -1,0 +1,260 @@
+i want c language code that about circular buffer in source and header. so i want it used in multi threaded app . and i want readers wait untill no data in buffer. and i want writers never starve and always can write or push into buffer.
+{
+Got it. You want a **multi-thread safe circular buffer** in C, with these properties:
+
+* **Readers (consumers)** block (wait) if the buffer is empty, until data becomes available.
+* **Writers (producers)** never block — they can always push data (even if the buffer is full). In that case, new data overwrites the oldest data (so no writer starvation).
+
+That means:
+
+* Synchronization with **mutex** + **condition variable**.
+* Consumers wait on empty buffer.
+* Producers overwrite old entries if buffer is full.
+
+Here’s a clean implementation with `.h` and `.c` files:
+
+---
+
+### `circular_buffer.h`
+
+```c
+#ifndef CIRCULAR_BUFFER_H
+#define CIRCULAR_BUFFER_H
+
+#include <stddef.h>   // size_t
+
+typedef struct circular_buffer circular_buffer_t;
+
+/**
+ * Create a circular buffer with given capacity.
+ * @param capacity Number of elements it can hold.
+ * @return pointer to buffer, NULL on failure.
+ */
+circular_buffer_t *cb_create(size_t capacity);
+
+/**
+ * Destroy the buffer and free resources.
+ */
+void cb_destroy(circular_buffer_t *cb);
+
+/**
+ * Push an item into the buffer.
+ * If buffer is full, overwrites the oldest element.
+ * Writers never block.
+ */
+void cb_push(circular_buffer_t *cb, int item);
+
+/**
+ * Pop an item from the buffer.
+ * If buffer is empty, waits until data is available.
+ */
+int cb_pop(circular_buffer_t *cb);
+
+#endif
+```
+
+---
+
+### `circular_buffer.c`
+
+```c
+#include "circular_buffer.h"
+#include <stdlib.h>
+#include <pthread.h>
+
+struct circular_buffer {
+    int *data;
+    size_t capacity;
+    size_t head;  // write index
+    size_t tail;  // read index
+    size_t count; // number of elements
+
+    pthread_mutex_t lock;
+    pthread_cond_t not_empty;
+};
+
+circular_buffer_t *cb_create(size_t capacity) {
+    circular_buffer_t *cb = malloc(sizeof(*cb));
+    if (!cb) return NULL;
+    cb->data = malloc(capacity * sizeof(int));
+    if (!cb->data) {
+        free(cb);
+        return NULL;
+    }
+    cb->capacity = capacity;
+    cb->head = 0;
+    cb->tail = 0;
+    cb->count = 0;
+
+    pthread_mutex_init(&cb->lock, NULL);
+    pthread_cond_init(&cb->not_empty, NULL);
+    return cb;
+}
+
+void cb_destroy(circular_buffer_t *cb) {
+    if (!cb) return;
+    pthread_mutex_destroy(&cb->lock);
+    pthread_cond_destroy(&cb->not_empty);
+    free(cb->data);
+    free(cb);
+}
+
+void cb_push(circular_buffer_t *cb, int item) {
+    pthread_mutex_lock(&cb->lock);
+
+    cb->data[cb->head] = item;
+    cb->head = (cb->head + 1) % cb->capacity;
+
+    if (cb->count == cb->capacity) {
+        // overwrite oldest
+        cb->tail = (cb->tail + 1) % cb->capacity;
+    } else {
+        cb->count++;
+    }
+
+    pthread_cond_signal(&cb->not_empty); // notify one waiting reader
+    pthread_mutex_unlock(&cb->lock);
+}
+
+int cb_pop(circular_buffer_t *cb) {
+    pthread_mutex_lock(&cb->lock);
+
+    while (cb->count == 0) {
+        pthread_cond_wait(&cb->not_empty, &cb->lock);
+    }
+
+    int item = cb->data[cb->tail];
+    cb->tail = (cb->tail + 1) % cb->capacity;
+    cb->count--;
+
+    pthread_mutex_unlock(&cb->lock);
+    return item;
+}
+```
+
+---
+
+### Behavior
+
+* Multiple writers can safely call `cb_push()`. They never block; if full, oldest data is dropped.
+* Multiple readers can safely call `cb_pop()`. They **wait** if empty, until `cb_push()` signals them.
+* Writers don’t starve because they can always overwrite.
+
+---
+
+Do you also want me to extend this so that **multiple readers can each see every item** (like a pub-sub model), or is this strictly **1 reader, 1 consumer queue**?
+
+}
+
+
+
+ok. good but when readers stuck in condition that data not available it do lock writes to entry the push function. am i wrong or misunderstanding
+{
+You spotted the subtlety 👍
+
+Let’s walk through it:
+
+* `cb_pop()` does:
+
+```c
+pthread_mutex_lock(&cb->lock);
+
+while (cb->count == 0) {
+    pthread_cond_wait(&cb->not_empty, &cb->lock);
+}
+```
+
+`pthread_cond_wait()` **atomically unlocks the mutex and blocks**.
+So while the reader is waiting, **the lock is free** → writers (`cb_push()`) can enter and push.
+
+When a writer pushes, it signals `not_empty`, which wakes the waiting reader. The reader then **reacquires the lock** before continuing.
+
+So:
+
+* **No, readers do not block writers.**
+* The mutex is only held while checking/modifying buffer state.
+* When waiting, the reader gives up the lock.
+
+👉 In your words: writers never get stuck behind readers that are waiting.
+
+Would you like me to add inline comments in the code to make this locking/unlocking behavior clearer?
+
+}
+
+
+
+when we use pthread_mutex_lock(&cb->lock) in pop after that in while code loop and check pthread_cond_wait(&cb->not_empty, &cb->lock). why you tell me in this line reader gives up the lock. is not until we call pthread_mutex_unlock pop still keep lock on mutex. can you please explain with more detail and accurate
+{
+Great question. The key point is what `pthread_cond_wait()` actually does.
+
+## What `pthread_cond_wait()` does (precisely)
+
+Preconditions: you **must hold** the mutex you pass to it.
+
+When you call:
+
+```c
+pthread_cond_wait(&cb->not_empty, &cb->lock);
+```
+
+the function performs these steps **atomically** with respect to `cb->lock`:
+
+1. **Enqueue** the calling thread on `cb->not_empty`’s wait set.
+2. **Release** `cb->lock` (as if you called `pthread_mutex_unlock`).
+3. **Block** the calling thread (sleep).
+
+Later, when another thread does `pthread_cond_signal(&cb->not_empty)` (or `broadcast`), the waiting thread is woken and `pthread_cond_wait()` then:
+
+4. **Reacquires** `cb->lock` (blocks here until it can lock it).
+5. **Returns** to your code **with the mutex locked again**.
+
+So while the reader is waiting inside `pthread_cond_wait()`, it **does not hold the mutex**. That’s why producers can enter `cb_push()`, lock `cb->lock`, modify the buffer, signal, and unlock.
+
+This is different from you explicitly calling `pthread_mutex_unlock()` yourself: with a plain unlock, there’s a race window where a producer could signal **before** the consumer actually starts waiting, causing a **lost wakeup**. The atomic “unlock-and-sleep” in `pthread_cond_wait()` eliminates that race.
+
+## Why the `while` loop?
+
+Condition variables can have:
+
+* **Spurious wakeups** (a thread wakes without a matching signal).
+* **Races** with other waiters/consumers (another consumer may have taken the item).
+
+Therefore you always write:
+
+```c
+pthread_mutex_lock(&cb->lock);
+while (cb->count == 0) {
+    pthread_cond_wait(&cb->not_empty, &cb->lock);
+}
+// here: you hold the lock and cb->count > 0
+... consume ...
+pthread_mutex_unlock(&cb->lock);
+```
+
+If the wakeup was spurious or another consumer emptied the buffer first, the loop checks again and continues to wait.
+
+## Micro-timeline (reader vs writer)
+
+* **Reader**: lock → sees `count==0` → `cond_wait` (internally: add to waiters, unlock, sleep).
+* **Writer**: lock → write/advance indices/`count++` → `cond_signal` → unlock.
+* **Reader**: wakes → re-locks → `cond_wait` returns → sees `count>0` → pops → unlocks.
+
+At no point is the writer blocked by a reader that is “waiting”; the reader **released the lock** as part of `cond_wait`.
+
+## Practical notes
+
+* Signal after you modify the shared state (still holding the mutex), then unlock. Typical pattern:
+
+```c
+pthread_mutex_lock(&cb->lock);
+/* modify: write, move head/tail, update count */
+pthread_cond_signal(&cb->not_empty);
+pthread_mutex_unlock(&cb->lock);
+```
+
+* Writers might momentarily wait to acquire the mutex if a consumer is actively holding it to check/update state, but there is **no starvation**: a waiting consumer does not hold the mutex, and active sections are short.
+
+If you want, I can add inline comments to the earlier code that spell this out right where `cond_wait` is called, or show an alternative that uses a counting semaphore for the “items available” count (it’s equivalent here, since writers never block for space).
+
+}
+
