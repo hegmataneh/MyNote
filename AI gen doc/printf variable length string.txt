@@ -1,0 +1,59 @@
+in c language how can printf with "%.*s" and rest of string fill with spaces
+{
+In C, the `"%.*s"` format in `printf` is used to print a **string with a precision specifier** (i.e., a maximum number of characters).
+
+But if you want to **print a string padded with spaces up to some fixed width**, you need to combine it with the **field width specifier**.
+
+---
+
+### Example:
+
+```c
+#include <stdio.h>
+
+int main() {
+    const char *text = "hello";
+    int width = 10;   // total field width
+    int len = 3;      // number of chars from text to print
+
+    printf("|%*.*s|\n", width, len, text);
+    return 0;
+}
+```
+
+---
+
+### Explanation of `"%*.*s"`
+
+* First `*` → field width (here `10`)
+* Second `*` → precision (maximum number of characters to print, here `3`)
+* `"s"` → string
+
+So this prints only **3 characters** from `"hello"` → `"hel"`,
+but ensures the output is **10 characters wide**, padding the rest with spaces.
+
+Output:
+
+```
+|       hel|
+```
+
+---
+
+✅ If you want **left-aligned padding**, use `%-*.*s` instead:
+
+```c
+printf("|%-*.*s|\n", width, len, text);
+```
+
+Output:
+
+```
+|hel       |
+```
+
+---
+
+Do you want the **spaces always after the string** (right-padding), or is left-padding acceptable too?
+
+}

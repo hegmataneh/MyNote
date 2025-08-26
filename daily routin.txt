@@ -9,6 +9,8 @@ daily routin
 3- report
 4- stage & push or sync
 
+6- آخر روز بنویس داشتی چکار میکردی و فردا از کجا شروع کنی
+
 5- sudo mount -t vboxsf my_project /root/my_projects
 5- sudo mount -t vboxsf my_project /home/my_projects
 
