@@ -1,8 +1,15 @@
 
+
+
+io_uring make multiple async io call then invoke userspace function
+
+14040605
+----------
+
 مسئله جالب پاک کردن تکه حافظه ایت که در آن یک پونتر هست که مقدار آن باید پاک شود با فری
 
 14040604
--------------
+----------
 
 آیا می شود از DMA direct memory access استفاده کرد
 

@@ -1,6 +1,8 @@
 to learn
 {
 
+	glibc
+
 	cast int64 to short what exactly do . consider that dynamic cast is not allowed in c
 
 	شکن نصب کن for copilot
