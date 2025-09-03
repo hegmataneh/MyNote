@@ -1,6 +1,9 @@
 to learn
 {
 
+	why alignment in struct
+	why cpu affinity and L core and NUMA
+
 	glibc
 
 	cast int64 to short what exactly do . consider that dynamic cast is not allowed in c

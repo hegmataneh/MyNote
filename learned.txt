@@ -1,5 +1,58 @@
 
+خب امروز مطالب خوبی یاد گرفتم یکیش همین آف لود که جالب بود و بدرد خواهد خورد
+- دیگری وقتی در ویندوز ویتروال ماشین بخواهیم داشته باشیم اگر این ماشین های core های مختلفی بپذیرند نتایج متفاوتی خواهیم داشت. در کل ویندوز فکر کنم رندوم core های آزاد را می دهدد به ماشین ها ولی اگر خودمان بگوییم کدام کور را بردار عملکرد ثابت می شود. حالا من آمد و طبق توضیخ جی پی تی از pcore ها که عملکرد بهتری دارند و در ضمن parked نشده اند و در task manage مشخص است کور هایی انتخاب کنم که اینها با هم contention کمتری دارند و حافظه مشترک دارند عملکرد بهتر می شود . در ضمن در power managemtn ویندوز اگر وضعیت را به hi performance تغییر دهیم کور ها دیگر parked نمی شود در نتیجه ویندوز دیگر بیخودی کلنجار با آنا و میزان عملکرد آنها نمی رود. 
 
+
+VBoxManage.exe list vms // لیست ماشینهای مجازی
+{
+}
+
+{
+Check Disk Space: Run the following command to check the available space on the filesystem where /tmp resides:
+df -h /tmp
+Clear /tmp: Temporary files in /tmp are often safe to delete (ensure no critical processes are using them)
+rm -rf /tmp/'*
+Check large files: Find large files elsewhere on the filesystem
+du -ah / | sort -rh | head -n 10
+
+}
+
+پکت لاست هایی هست که مثلا pcap می گیرد زیرا در بافر خودش اتفاق می افتد ولی در ss و ip نمایش داده نمی شود یا ifconfig enp0s3 یا dmesg | grep enp0s3 یا ethtool
+sudo dmesg -C
+# Run your UDP test
+dmesg | grep -i -E 'eth|enp|wlan|nic|error|fail|drop|tx|rx'
+
+Check dynamic linkage:
+ldd $(which tcpdump) | grep pcap
+
+
+
+start /affinity 3 "C:\Program Files\Oracle\VirtualBox\VirtualBoxVM.exe" --startvm "UDP sender"
+start "" /affinity 3 "C:\Program Files\Oracle\VirtualBox\VirtualBoxVM.exe" --startvm "UDP sender"
+start "" /affinity C "C:\Program Files\Oracle\VirtualBox\VirtualBoxVM.exe" --startvm "ProtocoleBridge"
+start "" /affinity 160 "C:\Program Files\Oracle\VirtualBox\VirtualBoxVM.exe" --startvm "UDP sender"
+start "" /affinity 2560 "C:\Program Files\Oracle\VirtualBox\VirtualBoxVM.exe" --startvm "ProtocoleBridge"
+
+
+packet offload
+{
+	این گزینه را که برای NIC فعال کردم باعث شد لاست کمتری در tshark داشته باشم.
+	
+	فعال کردن
+		sudo ethtool -K enp0s3 tso on gso on gro on lro on rx on tx on
+		
+	غیر فعال کردن
+		sudo ethtool -K enp0s3 gro off gso off tso off lro off
+		
+	چک وضعیت آن
+		ethtool -k enp0s3
+	
+}
+
+
+14040612
+
+--------------------
 
 io_uring make multiple async io call then invoke userspace function
 
@@ -637,9 +690,26 @@ vnstat
 
 network monitoring
 {
+	
+	dumpcap
+	{
+		dumpcap -i enp0s3 -f "udp port 1234" -c 5000000 -a duration:220 // count received udp packet
+		
+		
+	}
+	
+	
+	
 	nping // nping: part of nmap, can send many UDP/TCP/ICMP packets
 	{
 		یک مشکلی که دارد اینست که از تعداد تعیین شده بیشتر پکت می فرستد برای همین عددش غیر دقیق است
+
+		sudo nping --udp -c 10000000 --no-capture -q --rate 79365 -p 1234 --data-length 1470 192.168.100.60
+		{
+			send exact 10 M packet with payload 1470 byte and frame size 1512 and with bandwidth 120 MBps and quiet and not capture any respond
+			// nping نتوانست 58 مگابایت بیشتر ارسال کند
+			// hping هم که flood اش درست کار نمی کند و محدود به تعداد پکت نمی شود
+		}
 
 		sudo nping --udp -c 10000000 -q --rate 1000000 -p 1234 --data-length 1 192.168.100.60
 		{

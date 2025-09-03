@@ -65,7 +65,7 @@ ldd $(which tshark) | grep pcap
 
 
 
-sudo tshark -i enp0s3 -c 1000000 -f "udp dst port 1234" -a duration:30 -q |
+sudo tshark -i enp0s3 -c 5000000 -f "udp dst port 1234" -a duration:210 -q |
 awk 'BEGIN {
     count = 0
 }
@@ -92,4 +92,36 @@ vcbuf_popblk Variable Circular Buffer block on pop
 
 
 sudo nping --udp -c 100 --rate 1000000 -p 1234 --data-length 10 192.168.100.60
+
+
+
+
+sudo hping3 --udp -c 1000000 -d 1470 -i u1 192.168.100.60 -p 1234 -q
+sudo hping3 --udp -c 1000000 -d 1470 --flood 192.168.100.60 -p 1234 -q
+
+sudo nping --udp -c 1000000 --no-capture -q --rate 79365 -p 1234 --data-length 1470 192.168.100.60
+
+sudo nping --udp -c 1 --no-capture -q --rate 1000000 -p 1234 --data-length 1470 192.168.100.60
+
+sudo tshark -i enp0s3 -f "udp dst port 1234" -q -T fields -e udp.length -e frame.time_relative
+
+tshark -i enp0s3 -f "udp dst port 1234" -T fields -e frame.len
+
+
+sudo nping --udp -c 10000000 --no-capture -q --rate 66137000 -p 1234 --data-length 1470 192.168.100.60
+
+
+ip -s link show dev enp0s3
+
+ethtool -S enp0s3
+
+ip -s link show enp0s3
+
+
+tshark -i enp0s3 -f "udp port 1234"
+
+dumpcap -i enp0s3 -f "udp port 1234" -c 5000000 -a duration:150
+
+
+
 

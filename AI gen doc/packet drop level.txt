@@ -1,0 +1,155 @@
+i use tshark in ubuntu to get udp packet and count them. so it show 252 packets dropped from enp0s3. so why i can see this count with tools that use to list NIC stat like ip or netstat or ns
+{
+
+Good observation — that “**252 packets dropped from enp0s3**” in `tshark` doesn’t usually match what you see in `ip -s link`, `ethtool -S`, or `netstat -i`. The reason is that these drops are **not NIC-level drops** but **socket capture buffer drops**.
+
+Here’s the breakdown:
+
+---
+
+### 1. Where tshark gets the "dropped" count
+
+* `tshark` (via `libpcap`) asks the kernel to deliver packets from the NIC to a **capture ring buffer** in kernel memory.
+* If packets arrive faster than `tshark` can pull them from that buffer into user space, the kernel increments a **“packet dropped by capture”** counter.
+* This drop counter is reported by `libpcap` as `X packets dropped`, and `tshark` shows it at the end of capture.
+
+👉 These are **drops in the capture path**, not physical NIC drops.
+
+---
+
+### 2. What `ip -s link` or `netstat` show
+
+* `ip -s link show enp0s3` → shows **interface-level statistics** (e.g., RX errors, RX dropped by NIC driver, buffer overflows at the driver level).
+* `netstat -i` or `/proc/net/dev` → same: they show packets dropped **before** reaching the OS networking stack.
+* These counters only increase if the NIC/driver itself discards packets (e.g., ring buffer overflows at the NIC).
+
+So if packets are dropped **inside the pcap capture buffer**, you won’t see them in `ip`, `netstat`, or `/proc/net/dev`.
+
+---
+
+### 3. Tools that can show pcap-level drops
+
+* `tshark` / `tcpdump` → already show dropped packets at capture.
+* `cat /proc/net/packet` → per-packet socket stats, including drops, for AF\_PACKET sockets (what pcap uses under Linux).
+* `ss -s` (sometimes shows packet drops at socket level, but less detailed).
+
+---
+
+### 4. How to reduce capture drops
+
+* Increase capture buffer size:
+
+  ```bash
+  tshark -B 4096 -i enp0s3
+  ```
+
+  (`-B` is in MB).
+* Use `dumpcap` instead of `tshark`/`tcpdump` — it’s more efficient (written for high-speed capture).
+* Enable PF\_RING or AF\_PACKET v3 with mmap for faster zero-copy capture.
+* Pin capture to a CPU core with `taskset`.
+* Disable NIC offloads (GRO, LRO, TSO) when capturing raw packets:
+
+  ```bash
+  sudo ethtool -K enp0s3 gro off lro off tso off gso off
+  ```
+
+---
+
+✅ So the difference is:
+
+* `ip`/`netstat` → **NIC/driver-level drops**
+* `tshark` → **pcap buffer drops** (inside kernel, after NIC already handed packets to OS)
+
+Do you want me to show you exactly how to check the `/proc/net/packet` drops so you can correlate with tshark’s numbers?
+
+
+}
+
+
+so how enable NIC offload to increase performance of NIC
+{
+
+
+Good — let’s separate two things here because it’s easy to confuse them:
+
+* **NIC offloads (TSO, GSO, GRO, LRO, checksum offload, etc.)**
+  → improve **network throughput/CPU usage** when the NIC is used normally (send/receive sockets, iperf, etc.).
+  → but they **distort or hide raw packets** when you are *capturing* with `tshark/tcpdump`, which is why packet capture guides recommend turning them **off**.
+
+* **Packet capture (tshark/libpcap)**
+  → needs “exact packets on the wire”. With offloads enabled, the kernel may merge packets (GRO/LRO) or hand giant segments (TSO/GSO), so capture won’t reflect real traffic.
+  → also, enabling offloads does **not** reduce capture drops, because the drop reason is the **pcap buffer filling**, not the NIC speed.
+
+---
+
+### 1. Check current NIC offload features
+
+```bash
+sudo ethtool -k enp0s3
+```
+
+You’ll see things like:
+
+```
+tcp-segmentation-offload: on
+generic-segmentation-offload: on
+generic-receive-offload: on
+large-receive-offload: off
+rx-checksumming: on
+tx-checksumming: on
+```
+
+---
+
+### 2. Enable NIC offloads (for higher network performance)
+
+If some are disabled and you want to turn them on (for **normal network use, not capture**):
+
+```bash
+sudo ethtool -K enp0s3 tso on gso on gro on lro on rx on tx on
+```
+
+---
+
+### 3. When capturing with tshark/tcpdump
+
+If your goal is **accurate packet capture**, you should *disable* them instead:
+
+```bash
+sudo ethtool -K enp0s3 gro off gso off tso off lro off
+```
+
+Because otherwise you might see fewer packets but larger ones (due to coalescing/segmentation).
+
+---
+
+### 4. Permanent change
+
+`ethtool` settings reset on reboot. To make them permanent:
+
+* On Ubuntu, add them in `/etc/network/interfaces` or better, with **systemd-networkd** or **netplan** using `ethtool` commands in `post-up` scripts.
+  Example for Netplan (`/etc/netplan/*.yaml`):
+
+```yaml
+ethernets:
+  enp0s3:
+    dhcp4: true
+    ethtool:
+      offload:
+        tso: true
+        gso: true
+        gro: true
+```
+
+---
+
+✅ Summary:
+
+* Enable offloads = better NIC performance for general workloads.
+* Disable offloads = better accuracy for packet capture (to avoid fake/merged packets).
+
+Do you want higher **network throughput**, or higher **packet capture fidelity**? The answer changes whether we turn these on or off.
+
+
+
+}
