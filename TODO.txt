@@ -1,8 +1,57 @@
 
+many2one
+هر input مشخص می کند یک pcap باز شود و تجمیعش کار را سخت می کند شایدم نکند و تجمیع شود بهتر باشد و بعدش مجدد مشخص شود که چند تا pcap نیاز است
+
+همین که یک تابع باشد ورودی های مختلف را بگیرد و یک لیست ز خروجی بدهد که یعنی اینها به تفکیک pcap باید ساختته شود
+
+
+
+
+
+- من هم بتوانم تشخیص دهم که MTU ارتباطی بین من و خروجی چقدر است و اگر برایم امکان دارد حجم داده بیشتر ارسال کنم و از بار انتقال زودتر کم کنم
+
+- مموردی الوکیت هام بر اساسی باشد که بیشتر سرعت دسترسی ایجاد شود با توجه به NUMA 
+
+- Affinity هام درست باشد که thread ها در دسترسی به حافظه بیشترین سرعت را داشته باشند
+
+- همزمان no_wait و busy_poll استفاده شود که گیر نکند و هی بگیم دیتا بده
+
+
+5. Signals / Interrupts
+Problem: Signals like SIGINT, SIGTERM, or SIGPIPE can terminate the program.
+Mitigation: Install signal handlers:
+struct sigaction sa;
+sa.sa_handler = handle_sigint;
+sigaction(SIGINT, &sa, NULL);
+
+
+9. TCP Backpressure
+Problem: TCP send() can block if the socket buffer is full.
+Mitigation: Use non-blocking sockets, handle EAGAIN/EWOULDBLOCK.
+
+
+15. File / Disk I/O
+Problem: If program writes to disk and disk is full or unavailable, program may crash.
+Mitigation: Check return values for all I/O.
+
+
+18. Integer Overflow / Underflow -- very important
+Problem: Using packet sizes as int and overflowing can cause allocation issues.
+Mitigation: Use size_t and check for overflow before allocation.
+
+
+
+20. Improper Cleanup on Exit
+Problem: Not freeing resources on exit may cause undefined behavior or leaks in repeated restart.
+Mitigation: Use atexit() handlers or cleanup functions.
+
+Invalid File Descriptor Usage: Polling or reading/writing on closed/invalid sockets (e.g., after peer disconnect).
+Mitigation: Check FD validity with fcntl(fd, F_GETFD); before operations; handle EBADF errors.
+
+
+- هر کی یک چیزی Alloc می کند و واگذار می کند به بیرون که پاک کمند باید بنویسد که آنرا پاک کند
+
 هر بریدج که لود می شود برود استاتیک های خودش را داشته باشد و در ضمن می شود چند تا کانفیگ همزمان داشت پس محدود به یک ترد بودن خطاست
-
-
-
 
 با همون distribute خب RR و replicate را پیاده کنم
 

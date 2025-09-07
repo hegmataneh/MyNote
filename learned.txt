@@ -1,4 +1,13 @@
 
+sudo apt install libnuma-dev
+
+MSG_MORE is a send-level “cork” flag.
+
+UDP_CORK is a socket-level cork.
+
+14040615
+----------
+
 خب امروز مطالب خوبی یاد گرفتم یکیش همین آف لود که جالب بود و بدرد خواهد خورد
 - دیگری وقتی در ویندوز ویتروال ماشین بخواهیم داشته باشیم اگر این ماشین های core های مختلفی بپذیرند نتایج متفاوتی خواهیم داشت. در کل ویندوز فکر کنم رندوم core های آزاد را می دهدد به ماشین ها ولی اگر خودمان بگوییم کدام کور را بردار عملکرد ثابت می شود. حالا من آمد و طبق توضیخ جی پی تی از pcore ها که عملکرد بهتری دارند و در ضمن parked نشده اند و در task manage مشخص است کور هایی انتخاب کنم که اینها با هم contention کمتری دارند و حافظه مشترک دارند عملکرد بهتر می شود . در ضمن در power managemtn ویندوز اگر وضعیت را به hi performance تغییر دهیم کور ها دیگر parked نمی شود در نتیجه ویندوز دیگر بیخودی کلنجار با آنا و میزان عملکرد آنها نمی رود. 
 
@@ -8,6 +17,7 @@ VBoxManage.exe list vms // لیست ماشینهای مجازی
 }
 
 {
+	
 Check Disk Space: Run the following command to check the available space on the filesystem where /tmp resides:
 df -h /tmp
 Clear /tmp: Temporary files in /tmp are often safe to delete (ensure no critical processes are using them)

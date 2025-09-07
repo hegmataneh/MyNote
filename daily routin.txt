@@ -31,3 +31,14 @@ ssh root@192.168.100.61
 9- See www.geeksforgeeks.org/linux-unix
 
 11- backup projects
+
+
+my vm ip
+{
+172.17.0.59
+172.17.0.60
+}
+{
+192.168.56.59
+192.168.56.60
+}
