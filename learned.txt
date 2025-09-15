@@ -1,4 +1,93 @@
 
+speed up wrap around number
+{
+	In a circular buffer, when the head index reaches the end of the buffer, it must wrap back to 0.
+Normally you’d write:
+
+head = (head + 1) % BUFFER_SIZE;
+
+
+But % (modulo) is relatively slow.
+If BUFFER_SIZE is a power of 2, we can use bitwise AND:
+
+head = (head + 1) & (BUFFER_SIZE - 1);
+
+
+This is much faster because:
+
+For BUFFER_SIZE = 8, BUFFER_SIZE - 1 = 7 = 0b0111.
+
+& 0b0111 just keeps the lowest 3 bits of head, effectively doing a modulo-8 operation.
+}
+
+- when remove all breakpoint my stack trace work fine
+
+init VM in virtualbox
+{
+	it is very important to disable online boot for ubuntu to boot faster
+	{
+		- sudo systemctl disable systemd-networkd-wait-online.service
+	}
+	
+	- check ip
+	- sudo apt install libpcap-dev
+	- sudo apt install openssh-server
+	- sudo apt update
+	- sudo apt install build-essential gcc g++ gdb zip rsync
+	- sudo apt install -y make cmake
+	- sudo apt install wireshark tshark
+	- sudo apt install libncurses5-dev libncursesw5-dev
+	- sudo apt install -y libnotcurses-dev pkg-config build-essential
+	- sudo apt install libnotcurses-dev
+}
+
+14040618
+
+----------------
+
+to test logstash
+{
+	- send with filebeat
+	- echo "test message" | nc 192.168.1.52 10100 // logstash ip amd port that listen
+	- nc 10.202.18.52 10100
+}
+
+- ماشین 60 را upgrade کردم و همه چیزم گیر کرد و کند شد و نابود شد
+
+ip link // interfaces
+ip a // interfaces + ip
+
+to SFTP or secure ftp to ubuntu config file
+{
+	- sudo apt install openssh-server
+	Check that it’s running:
+	sudo systemctl status ssh
+	sudo systemctl enable --now ssh
+	sudo systemctl start ssh
+	Download: Total Commander SFTP plugin
+	In Total Commander: Configuration → Options → Plugins → File System Plugins (.WFX) → Add
+	
+	- in NEtwork neighburgood -> secire ftp -> F7 -> make ftp connection to ubuntu folder
+	- in menu bar total commander in command -> cd \\\Secure FTP\SFTP\home\user\projects -> add icon
+	- ctrl + d on page to add and get command to add icon on menu
+}
+
+
+to resolve linker error pthread_create
+{
+	pthread at input->lib dep
+	
+	maybe -> sudo apt update && sudo apt install libpthread-stubs0-dev
+	
+	Use nm to inspect libpthread.so -> nm -D /lib/x86_64-linux-gnu/libpthread.so.0 | grep pthread_create
+	
+	Use ldconfig to locate libpthread -> ldconfig -p | grep pthread
+}
+
+14040616
+
+-------------
+
 sudo apt install libnuma-dev
 
 MSG_MORE is a send-level “cork” flag.
@@ -745,6 +834,9 @@ network monitoring
 	tshark
 	{
 		tshark -i enp0s3 -f "udp dst port 1234" -T fields -e frame.len // o calculate the frame size of UDP packets destined to port 1234 on interface enp0s3 using tshark
+
+		sudo tshark -i any -f "ip and udp dst portrange 10200-10205" \
+		  -T fields -e ip.src -e udp.dstport -e frame.len -e ip.flags.mf -e ip.frag_offset
 
 		sudo tshark -i enp0s3 -f "udp" -Y "udp.port == 1234" -x // listen to port and get udp packet from port with interface and dump raw data
 		tshark -i enp0s3 -Y "udp.port == 1234" -T fields -e frame.len // How to get whole packet size with tshark

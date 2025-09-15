@@ -8,12 +8,14 @@ daily routin
 2- check afra
 3- report
 4- stage & push or sync
+5- make copy of good VM and restore point of windows
 
 6- آخر روز بنویس داشتی چکار میکردی و فردا از کجا شروع کنی
 
 5- sudo mount -t vboxsf my_project /root/my_projects
 5- sudo mount -t vboxsf my_project /home/my_projects
-
+- lsof +D /root/my_projects
+- sudo umount /root/my_projects
 
 6- تعیین غذاب هفتگی
 7- کنترل فیش حقوقی سر ماه

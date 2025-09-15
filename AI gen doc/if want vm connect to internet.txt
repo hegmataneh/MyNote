@@ -1,0 +1,277 @@
+i want set netcfg or 01-netcfg.yaml to interface enp0s8 has dsn 192.198.56.1( thrernet vbox ) or 192.168.100.6( my host internet ip )
+{
+
+Got it. You want to configure **netplan** (`01-netcfg.yaml`) so that your interface `enp0s8` uses a specific **DNS server** (either your VirtualBox host-only adapter `192.168.56.1` or your host’s internet IP `192.168.100.6`).
+
+Here’s how you can do it:
+
+---
+
+### 1. Locate the netplan config
+
+On Ubuntu, netplan configs are usually under:
+
+```bash
+/etc/netplan/01-netcfg.yaml
+```
+
+---
+
+### 2. Example configuration
+
+Edit the file (with `sudo nano /etc/netplan/01-netcfg.yaml`) and add DNS settings under `nameservers`.
+
+Example for static IP with DNS:
+
+```yaml
+network:
+  version: 2
+  ethernets:
+    enp0s8:
+      dhcp4: no
+      addresses:
+        - 192.168.56.10/24   # example static IP for VM
+      gateway4: 192.168.56.1 # VirtualBox host-only gateway
+      nameservers:
+        addresses:
+          - 192.168.56.1     # DNS via host-only adapter
+          - 8.8.8.8          # fallback Google DNS
+```
+
+If you want to use your host internet IP (`192.168.100.6`) as DNS:
+
+```yaml
+network:
+  version: 2
+  ethernets:
+    enp0s8:
+      dhcp4: no
+      addresses:
+        - 192.168.100.10/24   # example static IP
+      gateway4: 192.168.100.6 # use host as gateway
+      nameservers:
+        addresses:
+          - 192.168.100.6
+          - 8.8.4.4
+```
+
+---
+
+### 3. Apply the configuration
+
+After saving, apply with:
+
+```bash
+sudo netplan apply
+```
+
+---
+
+### 4. Verify
+
+Check DNS resolution:
+
+```bash
+systemd-resolve --status | grep 'DNS Servers' -A2
+```
+
+---
+
+⚠️ Important:
+
+* You must pick one network setup (host-only **or** bridged/internet). Using both at once can be tricky; it depends on whether `enp0s8` is connected to VirtualBox Host-Only or Bridged Adapter.
+* If your VM already uses `enp0s3` for NAT/internet, then you might want `enp0s8` only for local/host-only networking, and in that case you usually **don’t set DNS/gateway** on it (to avoid routing conflicts).
+
+---
+
+Do you want me to prepare the config so that:
+
+* `enp0s3` keeps NAT/internet access
+* `enp0s8` is only for local/host-only communication
+  (without breaking your internet)?
+
+
+}
+
+
+
+
+let me explain more and please make plan for me to do this. i have virtual machine that ubuntu unstall on it. my own computer have windows with ip 192.168.100.6. and has internet. so i want my virtual machine sometime have internet when i set bridge connection to it and i enable that connection. so what can i do to connection my machine just few time.
+{
+
+Ok, now it’s clear 👍. You want your Ubuntu VM to:
+
+1. **Sometimes have internet** (when you enable a *bridged adapter* in VirtualBox).
+2. **Other times only be isolated / local** (no internet).
+3. Be able to switch this easily without breaking things.
+
+Here’s a **practical plan**:
+
+---
+
+## 🔹 Step 1: Keep two network adapters in VM
+
+In VirtualBox VM settings:
+
+* **Adapter 1 (enp0s3)**: keep as **NAT** → this always gives you basic internet (but not reachable from host).
+* **Adapter 2 (enp0s8)**: configure as **Host-Only Adapter** → this lets VM talk directly to your Windows host (192.168.56.x range).
+
+👉 With this, you can always reach your host, and internet via NAT works automatically.
+
+---
+
+## 🔹 Step 2: Optionally add Bridged Adapter
+
+When you want your VM to appear on the same network as your Windows host (`192.168.100.x`):
+
+* Temporarily **switch Adapter 1 (or add Adapter 3)** to **Bridged Adapter**.
+* This will give your VM an IP like `192.168.100.xxx` and direct access to the same network as your host.
+
+You can enable/disable this adapter in VirtualBox GUI → Settings → Network.
+
+---
+
+## 🔹 Step 3: Netplan setup inside Ubuntu
+
+Create `/etc/netplan/01-netcfg.yaml` like this:
+
+```yaml
+network:
+  version: 2
+  ethernets:
+    enp0s3:        # NAT (always internet)
+      dhcp4: true
+
+    enp0s8:        # Host-Only adapter
+      dhcp4: true
+      nameservers:
+        addresses:
+          - 192.168.56.1   # host-only gateway
+          - 8.8.8.8        # fallback DNS
+
+    # enp0s9:      # (Optional) Bridged adapter, only enable when needed
+    #   dhcp4: true
+```
+
+Then apply:
+
+```bash
+sudo netplan apply
+```
+
+---
+
+## 🔹 Step 4: Switching modes
+
+* **Default use (no bridge)**:
+
+  * VM gets internet via `enp0s3` (NAT).
+  * VM talks to host via `enp0s8` (192.168.56.x).
+* **When you want full LAN access**:
+
+  * Enable the **bridged adapter** in VirtualBox.
+  * VM will also get an IP in `192.168.100.x` (same LAN as your Windows PC).
+  * Disable bridged adapter when you don’t want it.
+
+---
+
+✅ This way, you don’t have to rewrite netplan every time. Just toggle the adapter in VirtualBox GUI.
+
+Do you want me to make you a **netplan config** that’s ready for all three adapters (NAT, Host-Only, and Bridged), so you only toggle in VirtualBox without touching Ubuntu configs?
+
+
+}
+
+
+
+and how can i test if inernet is connected
+{
+
+Good question. Once you set up the adapters, there are a few ways to test if your Ubuntu VM really has **internet access**:
+
+---
+
+### 🔹 1. Test basic network connectivity
+
+```bash
+ping -c 4 8.8.8.8
+```
+
+* If this works, your VM can reach the internet at the IP level.
+* If it fails → maybe no route/gateway is set.
+
+---
+
+### 🔹 2. Test DNS resolution
+
+```bash
+ping -c 4 google.com
+```
+
+* If this works → DNS is configured properly.
+* If ping to IP works but DNS fails → problem is in your `nameservers` config.
+
+---
+
+### 🔹 3. Test with a real HTTP request
+
+```bash
+curl -I https://example.com
+```
+
+or
+
+```bash
+wget --spider https://example.com
+```
+
+* If you see HTTP headers (200 OK, 301, etc.), internet is fine.
+* If it hangs or says “Temporary failure in name resolution” → DNS issue.
+
+---
+
+### 🔹 4. Check the active routes
+
+```bash
+ip route
+```
+
+* Should show a **default route** like:
+
+  ```
+  default via 10.0.2.2 dev enp0s3 proto dhcp  src 10.0.2.15
+  ```
+
+  (for NAT)
+  or
+
+  ```
+  default via 192.168.100.1 dev enp0s9 proto dhcp  src 192.168.100.50
+  ```
+
+  (for Bridged).
+
+---
+
+### 🔹 5. Check DNS servers Ubuntu is using
+
+```bash
+systemd-resolve --status | grep 'DNS Servers' -A2
+```
+
+* Shows which DNS servers your VM is using.
+
+---
+
+👉 My recommendation:
+
+* First `ping 8.8.8.8`.
+* If that works, try `ping google.com`.
+* If that fails → fix DNS.
+
+---
+
+Do you want me to also give you a **one-line script** you can run that will check internet automatically and tell you if it’s working or not?
+
+
+}

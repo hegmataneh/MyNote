@@ -125,3 +125,65 @@ dumpcap -i enp0s3 -f "udp port 1234" -c 5000000 -a duration:150
 
 
 
+http://10.202.18.88:8000
+
+http://10.202.18.88:8000/Protocol_Bridge_config.txt
+
+
+http://10.202.18.88\SharedFolder
+http://10.202.18.88
+\SharedFolder
+
+//10.202.18.88/SharedFolder
+
+http://10.202.18.88/SharedFolder
+
+
+10.202.18.88\home\user\projects
+
+\SharedFolder
+
+/home/user/projects
+
+chown username:user /home/user/projects
+
+*QwEIoP*R*1qaz*
+
+smbclient //localhost/SharedFolder -U user
+
+
+sudo mount -t cifs -o username=user,password=*QwEIoP*R*1qaz* //localhost/SharedFolder /mnt/sambashare
+
+
+sudo chown user:user /home/user/projects
+
+chmod -R 755 /home/user/projects
+
+
+cd \\\Secure FTP\SFTP\home\user\projects
+
+
+dumpcap -i any -f "udp port 10200" -c 5000 -a duration:30
+
+dumpcap -i any -f "udp port 10200" -c 5000
+
+
+sudo tshark -i any -f "udp dst portrange 10200-10205"
+
+sudo tshark -i any -f "udp dst portrange 10200-10205" -V
+
+sudo tshark -i any -f "ip and udp dst portrange 10200-10205" \
+  -T fields -e ip.src -e udp.dstport -e frame.len -e ip.flags.mf -e ip.frag_offset
+
+
+sudo ss -tuln | grep :10100
+
+
+sudo lsof -i :10100
+
+
+filebeat
+
+nc 10.202.18.52 10100
+
+echo "test message" | nc 192.168.1.52 10100

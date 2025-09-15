@@ -1,0 +1,80 @@
+how could i test if logstash receive any msg
+{
+
+To check if **Logstash** is receiving messages, there are several approaches depending on your setup. Here’s a clear breakdown:
+
+---
+
+### **1. Check Logstash logs**
+
+Logstash logs contain information about events being processed.
+
+```bash
+sudo journalctl -u logstash -f
+```
+
+or if installed manually:
+
+```bash
+tail -f /var/log/logstash/logstash-plain.log
+```
+
+* If Logstash is receiving data, you will see lines like `Pipeline received` or `Pipeline output events`.
+* If there’s an error in input configuration, it will also appear here.
+
+---
+
+### **2. Use stdout output in Logstash**
+
+You can temporarily configure Logstash to print incoming events to the console. Edit your Logstash pipeline configuration (usually `/etc/logstash/conf.d/your_pipeline.conf`) and add a `stdout` output:
+
+```ruby
+output {
+  stdout { codec => rubydebug }
+}
+```
+
+* Restart Logstash after modifying the config:
+
+```bash
+sudo systemctl restart logstash
+```
+
+* Any received messages will now appear in the console or logs.
+
+---
+
+### **3. Test with a simple sender**
+
+You can test your input (TCP, UDP, or other) using `nc` (netcat):
+
+```bash
+# For TCP input
+echo "test message" | nc <logstash-ip> <logstash-port>
+
+# For UDP input
+echo "test message" | nc -u <logstash-ip> <logstash-port>
+```
+
+* Then check logs or stdout output to see if the message arrived.
+
+---
+
+### **4. Verify network connectivity**
+
+Ensure the port Logstash listens on is open:
+
+```bash
+sudo netstat -tulnp | grep <logstash-port>
+# or
+ss -tulnp | grep <logstash-port>
+```
+
+* This confirms Logstash is actively listening on the expected port.
+
+---
+
+If you want, I can give you a **one-line command that tests TCP/UDP message sending and shows immediately if Logstash receives it** without touching configs. That’s usually the fastest way. Do you want me to do that?
+
+
+}

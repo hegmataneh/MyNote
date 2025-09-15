@@ -1,0 +1,15 @@
+network:
+  version: 2
+  ethernets:
+    enp0s3:
+      dhcp4: no
+      addresses: [172.17.0.60/24]
+    enp0s8:        # Host-Only adapter
+      dhcp4: true
+      nameservers:
+        addresses:
+          - 192.168.56.1   # host-only gateway
+          - 8.8.8.8        # fallback DNS
+    enp0s9:
+      dhcp4: no
+      addresses: [192.168.56.60/24]

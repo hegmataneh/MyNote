@@ -1,10 +1,14 @@
 to learn
 {
 
+	پلاگین وورد ویراستی برای رفع خطاهای نگارش
+
 	why alignment in struct
 	why cpu affinity and L core and NUMA
 
 	glibc
+
+	False sharing // https://en.wikipedia.org/wiki/False_sharing
 
 	cast int64 to short what exactly do . consider that dynamic cast is not allowed in c
 

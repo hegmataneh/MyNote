@@ -1,0 +1,98 @@
+if i want debug on remote ubuntu machine which tools should be installed on ot
+{
+
+To debug C/C++ programs on a **remote Ubuntu machine**, you need a combination of compilers, debuggers, and optionally some development tools. Here’s a structured list:
+
+---
+
+### 1. **Compiler**
+
+* **GCC / G++** – necessary to compile programs with debug symbols.
+
+  ```bash
+  sudo apt update
+  sudo apt install build-essential
+  ```
+
+  This installs `gcc`, `g++`, `make`, and some basic libraries.
+
+* Ensure you compile with **debug symbols**:
+
+  ```bash
+  gcc -g -o myprog myprog.c
+  g++ -g -o myprog myprog.cpp
+  ```
+
+---
+
+### 2. **Debugger**
+
+* **GDB (GNU Debugger)** – the standard debugger for C/C++ on Linux.
+
+  ```bash
+  sudo apt install gdb
+  ```
+
+  Then run:
+
+  ```bash
+  gdb ./myprog
+  ```
+
+* Optional: **GDB with remote debugging**
+  If you want to debug **from your local machine using VS2022 or another IDE**, you can use `gdbserver`:
+
+  ```bash
+  sudo apt install gdbserver
+  ```
+
+  Example usage:
+
+  ```bash
+  gdbserver :1234 ./myprog
+  ```
+
+  Then connect from your local IDE with the remote GDB target.
+
+---
+
+### 3. **Profiling / Advanced Debugging Tools** (optional)
+
+* **Valgrind** – for memory leak detection and profiling:
+
+  ```bash
+  sudo apt install valgrind
+  ```
+* **strace / ltrace** – to trace system calls and library calls:
+
+  ```bash
+  sudo apt install strace ltrace
+  ```
+* **perf** – for CPU performance profiling:
+
+  ```bash
+  sudo apt install linux-perf
+  ```
+
+---
+
+### 4. **IDE / Editor Support**
+
+* If you use **VS2022 Remote Development**, make sure the **C/C++ extension** is installed locally and the remote server is reachable via SSH. VS2022 will handle compiling and debugging through the remote connection.
+
+---
+
+### 5. **Optional Utilities**
+
+* **screen or tmux** – if you need long-running debug sessions over SSH.
+
+  ```bash
+  sudo apt install tmux
+  ```
+
+---
+
+If you want, I can give you a **ready-to-run command sequence that installs everything needed for remote C/C++ debugging** on Ubuntu. This would set it up in one go. Do you want me to do that?
+
+
+}

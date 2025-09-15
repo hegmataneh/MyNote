@@ -1,0 +1,86 @@
+is that  a way to list open port on each interface on machine
+{
+
+Yes, you can list open ports on each interface on a machine in Ubuntu (or Linux in general), but there’s a nuance: most tools show **listening ports per IP/port**, not explicitly per network interface. Still, since each interface has its own IP, you can correlate listening sockets with interfaces. Here’s how:
+
+---
+
+### 1. Using `ss`
+
+`ss` is modern and fast:
+
+```bash
+ss -tuln
+```
+
+* `-t` → TCP
+* `-u` → UDP
+* `-l` → listening sockets
+* `-n` → numeric (don’t resolve names)
+
+Example output:
+
+```
+LISTEN 0      128    127.0.0.1:22       0.0.0.0:*
+LISTEN 0      128    192.168.1.10:80    0.0.0.0:*
+```
+
+* The local IP tells you the interface (e.g., `192.168.1.10` is probably `eth0`).
+
+To map to interface:
+
+```bash
+ip addr show
+```
+
+Compare the IP to interfaces.
+
+---
+
+### 2. Using `netstat` (older)
+
+```bash
+sudo netstat -tulnp
+```
+
+* Shows PID/program too (`-p`).
+* Local Address column gives IP\:PORT, which can be mapped to interface.
+
+---
+
+### 3. Using `lsof`
+
+```bash
+sudo lsof -i -P -n
+```
+
+* Lists open network files.
+* Example line:
+
+```
+sshd   1234 root 3u IPv4  0t0  TCP 192.168.1.10:22 (LISTEN)
+```
+
+---
+
+### 4. Using `nmap` locally
+
+You can scan all interfaces:
+
+```bash
+sudo nmap -sT -O -sV $(hostname -I)
+```
+
+* `hostname -I` lists all local IPs.
+* This way, you see which ports are open per IP/interface.
+
+---
+
+✅ **Tip:** If you want a per-interface view automatically, you can script `ss` or `netstat` with `ip addr` to group open ports by interface.
+
+---
+
+If you want, I can give you a **ready-to-run one-liner command** that prints open ports grouped per network interface. Do you want me to do that?
+
+
+}
