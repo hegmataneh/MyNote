@@ -176,6 +176,20 @@ sudo tshark -i any -f "ip and udp dst portrange 10200-10205" \
   -T fields -e ip.src -e udp.dstport -e frame.len -e ip.flags.mf -e ip.frag_offset
 
 
+sudo tshark -i any -f "udp dst portrange 10200-10205" -V -x
+
+tshark -i any -f "udp dst portrange 10200-10205" \
+  -T fields \
+  -e frame.len \
+  -e ip.hdr_len \
+  -e ip.len \
+  -e udp.length \
+  -e data.len
+
+tshark -i any -f "udp dst portrange 10200-10205" -T fields -e frame.len -e ip.len -e udp.length -e data.len
+
+sudo tshark -i any -f "udp" -V
+
 sudo ss -tuln | grep :10100
 
 
@@ -187,3 +201,11 @@ filebeat
 nc 10.202.18.52 10100
 
 echo "test message" | nc 192.168.1.52 10100
+
+
+tshark -i any -f "udp dst port 10200" -o ip.defragment:TRUE -o udp.reassemble:TRUE
+
+
+
+sudo tshark -i ens160 -f "udp dst port 10200"
+sudo tshark -i ens194 -f "udp dst port 10200"

@@ -7,6 +7,12 @@ to learn
 	why cpu affinity and L core and NUMA
 
 	glibc
+	
+	__attribute__((cleanup(func)))
+	__builtin_prefetch(ptr, rw, locality)
+	__builtin_trap()
+	
+	LPM algorithm
 
 	False sharing // https://en.wikipedia.org/wiki/False_sharing
 
