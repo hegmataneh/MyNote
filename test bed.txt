@@ -209,3 +209,22 @@ tshark -i any -f "udp dst port 10200" -o ip.defragment:TRUE -o udp.reassemble:TR
 
 sudo tshark -i ens160 -f "udp dst port 10200"
 sudo tshark -i ens194 -f "udp dst port 10200"
+
+
+./Protocol_Bridge.out &
+disown
+
+ps -ef | grep Protocol_Bridge
+
+
+ps -p 320182
+
+kill 320182
+
+kill -9 320182
+
+
+sudo tshark -i enp0s3 -f "udp port 1234" -o ip.defragment:FALSE -x
+
+
+sudo tshark -i enp0s3 -f "udp port 1234" -o ip.defragment:FALSE -o udp.reassemble:FALSE  -x

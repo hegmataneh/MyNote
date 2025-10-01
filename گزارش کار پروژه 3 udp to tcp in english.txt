@@ -1,0 +1,115 @@
+Project Title:  Protocol Bridge / Ingestion Normalizer
+Project Start Date:  1404/03/20
+Report Date:  1404/06/30
+
+==========
+
+### [1404/03/20 – 1404/04/07] – 12 Working Days
+
+++  Created a program to count received UDP packets. The program receives its configuration via a JSON file.
+---  Implemented support for dynamically reloading configuration during runtime based on config changes.
+---  Implemented reading of received UDP packets from a UDP port using kernel socket.
+
+==========
+
+### [1404/04/08 – 1404/04/18] – 7 Working Days
+
+++  Created a program for bulk UDP packet generation based on a config file.
+---  Implemented a statistics display box using ncurses.
+---  Compared the sending rate of my program with other packet generator tools like netcat, hping3, nping, wget, and file copy via shared folder.
+>>> Result:  My UDP generator program achieved a higher sending rate without exceeding the MTU packet size limit.
+
+==========
+
+### [1404/04/21 – 1404/05/08] – 15 Working Days
+
+++  Investigated the cause of packet loss on my receiver side.
+---  Analyzed packet loss rate of similar tools like tcpdump, tshark, iftop, and iperf.
+---  Tested alternatives to kernel socket for receiving UDP packets: pfring, XDP, libpcap, DPDK, PACKET_FANOUT, AF_PACKET.
+Only pcap-based raw packet capture could be tested because others required a real NIC and native mode.
+>>> Result:  pcap performed significantly better than kernel socket.
+>>>  Additionally, enabling BUSY_POOL flags, tuning buffer size, and setting CPU affinity on the VM improved packet loss rate.
+
+==========
+
+### [1404/05/11 – 1404/05/14] – 4 Working Days
+
+++  Created a TCP receiver program with configuration input from a file.
+
+==========
+
+### [1404/05/15 – 1404/05/22] – 6 Working Days
+
+++  Debugged my program.
+---  Investigated the reason for UDP packet reception freeze.
+---  Fixed crashes when a Fault occurred.
+>>> Positive Impacts: 
+* Implemented port drain
+* Decoupled packet receive and send using a circular buffer and multithreading
+* Added connection retry mechanism
+
+==========
+
+### [1404/05/25 – 1404/06/11] – 12 Working Days
+
+++  Extended program to support advanced and combined configurations.
+---  Created complex config to implement multi-producer / multi-consumer, round-robin send, and packet replication to destination.
+
+==========
+
+### [1404/06/12 – 1404/06/17] – 4 Working Days
+
+++  Defined the required topology for testing on a real server.
+---  Received server IPs and prepared environment for execution and debugging on the new server.
+---  Tested program performance under load on the real server and measured program stability.
+---  Since UDP packets were delivered fragmented, raw packet receive issues were bypassed for now by using kernel socket.
+>>>  The program was deployed for 3 days on one of the receiver ports and successfully delivered data to logstash on the opposite side (packet loss was not measured).
+
+==========
+
+### [1404/06/18 – 1404/06/31] – 9 Working Days
+
+++  Implemented a Central Cache.
+---  Implemented circular buffer for each pcap or for each gate config receiver.
+---  Implemented storing of all gate-received data into a single memory region using a circular doubly linked list and added LIFO-based data send capability.
+
+====================
+====================
+
+## Remaining Tasks for Initial Beta Release (11 Working Days)
+
+++  Display complex configuration statistics using notcurses (3 days) 14040701 14040705
+++  Implement persistent storage for unsent packets (6 days) 14040706 14040714
+---  Automatic save/restore from persistent storage and LIFO send
+---  Program must not exit unless all unsent data is saved to disk
+++  Fix memory leaks (2 day) 14040715 14040716
+
+==========
+
+## Remaining Tasks for Phase 1 Stable Release (12 Working Days)
+
+++  Implement mechanism to prevent losing even a single log by internal communication between two instances of the program using the simplest method (2 days)
+++  Add logging to the program to analyze faults (3 days)
+++  Defragment packets received via raw sockets (3 days)
+++  Testing (4 days)
+---  Stress test under very high data load
+---  Test under link failure or slowdown conditions
+---  Test packet loss rate (3 days)
+
+==========
+
+## Identified Tasks for Future Phases
+
+* Implement raw packet receive methods including XDP, DPDK
+* Ensure program scalability for very high log volumes
+* Validate and report config file errors
+* Implement remote monitoring via telnet
+* Test stability during online config changes
+* Support config delivery via telnet
+* Create required test cases for different code modules
+* Test basic subroutines
+* Add comments and documentation to code
+* Support parallel output to multiple logstash destinations if specified in config
+* Implement graceful degradation and avoid program termination on failure
+* If possible, allow sending data beyond MTU size to speed up draining of high-performance stored data
+* Implement alert system for situations where log access policy fails (e.g., disk or memory full)

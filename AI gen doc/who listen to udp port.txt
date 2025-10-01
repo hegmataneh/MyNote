@@ -1,0 +1,56 @@
+check who listen to any udp port
+{
+You can check which process is listening on any UDP port with several commands.
+Here are the most common and reliable ones for Linux:
+
+---
+
+### 1. **Using `ss` (recommended, modern way)**
+
+```bash
+sudo ss -ulpn
+```
+
+* `-u` → Show UDP sockets
+* `-l` → Only listening sockets
+* `-p` → Show process using the socket
+* `-n` → Show port numbers instead of service names
+
+**Example output:**
+
+```
+State  Recv-Q Send-Q Local Address:Port  Peer Address:Port  Process
+UNCONN 0      0      0.0.0.0:12345      0.0.0.0:*      users:(("myudpapp",pid=1234,fd=5))
+```
+
+---
+
+### 2. **Using `lsof`**
+
+```bash
+sudo lsof -iUDP -nP
+```
+
+* `-iUDP` → Show UDP sockets
+* `-nP` → No DNS lookup, show numeric ports
+
+You’ll get a list of all processes with UDP sockets open (both listening and connected).
+
+---
+
+### 3. **Using `netstat` (older tool, still available)**
+
+```bash
+sudo netstat -ulnp
+```
+
+* `-u` → UDP
+* `-l` → Listening
+* `-n` → Numeric ports
+* `-p` → Show PID/program
+
+---
+
+Would you like me to show you a command that **filters for a specific UDP port** (e.g., `10200`)? That way you can quickly check if something is listening there.
+
+}

@@ -8,6 +8,42 @@ daily routin
 7N8CU0OWU
 
 
+با سلام و احترام
+اطلاعات سرور های مربوطه:
+3 server Binesh:
+2.189.5.118
+2.189.5.119
+2.189.5.120
+om port: 6969
+user: user
+password:
+*QwEIoP*R*1qaz*
+--------------
+TCPrelay server:
+10.202.18.88
+user:user
+password: *QwEIoP*R*1qaz*
+-----------------
+receiving log servers:
+10.202.18.128
+10.202.18.129
+10.202.18.130
+user: user
+password: *QwEIoP*R*1qaz*
+
+
+ssh user@10.202.18.88
+*QwEIoP*R*1qaz*
+
+ssh -p 6969 user@2.189.5.118
+*QwEIoP*R*1qaz*
+
+by main server ssh to them
+ssh user@10.202.18.128
+ssh user@192.168.1.52
+
+
+
 - ghyas
 - clean spam sms
 - check afra
@@ -29,6 +65,7 @@ daily routin
 ssh root@192.168.56.59
 
 ssh root@192.168.56.60
+123456
 
 ssh root@192.168.56.61
 

@@ -1,0 +1,428 @@
+if i had ssh session to vm and run app in that session. if i close ssh or hibernate host of ssh . then is that running ap closed
+{
+
+That depends on **how** you run the app in your SSH session.
+
+By default, yes — if you just run:
+
+```bash
+./my_app
+```
+
+and then close the SSH session or hibernate the host, the process will receive a **SIGHUP** (hangup signal) and terminate.
+
+But you can make it keep running even after SSH disconnects:
+
+---
+
+### 1. **Use `nohup`**
+
+Prevents SIGHUP from killing the process:
+
+```bash
+nohup ./my_app > output.log 2>&1 &
+```
+
+* `nohup` ignores hangup signals
+* `&` runs in background
+* Process keeps running after SSH closes
+
+---
+
+### 2. **Use `disown`**
+
+Start normally, then detach from shell:
+
+```bash
+./my_app &
+disown
+```
+
+Now the process is no longer tied to the SSH session.
+
+---
+
+### 3. **Use a Terminal Multiplexer (`screen` or `tmux`)**
+
+Start a persistent shell session that survives disconnects:
+
+```bash
+tmux
+./my_app
+```
+
+Then you can detach with `Ctrl+B D`, disconnect SSH, reconnect later and run:
+
+```bash
+tmux attach
+```
+
+to rejoin the session.
+
+---
+
+### 4. **Systemd Service**
+
+For long-running apps, create a systemd service so it runs in the background like a daemon and auto-starts on boot.
+
+---
+
+### Hibernate Case
+
+If you **hibernate the SSH client machine**, but keep the SSH connection open (not killed by network timeout), the session might stay alive.
+But usually the network will break during hibernation → SSH session drops → process dies unless you used `nohup`, `disown`, or `tmux`.
+
+---
+
+Do you want me to show you the simplest solution (minimal change to your current workflow) or the most reliable (safe for long-term running apps)?
+
+
+}
+
+
+if i do disown then hot to query system that my app still running
+{
+
+Good question — once you run `disown`, the process is detached from your shell, so you can’t bring it back with `fg` or `jobs`.
+But you can still check if it’s running using standard Linux tools.
+
+---
+
+### 1. **Check by Process Name**
+
+If your app is called `my_app`:
+
+```bash
+ps -ef | grep my_app
+```
+
+Example output:
+
+```
+user     12345     1  0 17:01 ?        00:00:01 ./my_app
+```
+
+The number after your username (`12345`) is the PID (process ID).
+If you see it, it’s still running.
+
+---
+
+### 2. **Check by PID (If You Saved It)**
+
+When you start the process:
+
+```bash
+./my_app &
+echo $!
+```
+
+This prints the PID of the background job.
+Then later you can check:
+
+```bash
+ps -p <PID>
+```
+
+If it shows info, it’s running. If it says “no such process”, it’s gone.
+
+---
+
+### 3. **Check with `pgrep`**
+
+Shortcut to find by name:
+
+```bash
+pgrep -a my_app
+```
+
+Shows PID and command line.
+
+---
+
+### 4. **Check Resource Usage**
+
+```bash
+top -p <PID>
+```
+
+or simply:
+
+```bash
+htop
+```
+
+and search (`/`) for `my_app`.
+
+---
+
+Would you like me to give you a **one-liner** that runs your app in background, disowns it, and logs the PID automatically so you can check later?
+
+
+}
+
+
+
+is that a way to bring it forward and see stdout and view of app
+{
+
+If you use **`disown`**, unfortunately **no — you cannot bring it back to the foreground** or reattach its stdout/stderr to your current shell.
+`disown` just removes the job from the shell’s job table, so you lose the connection to its input/output streams.
+The process will keep running, but you won’t see its live output anymore.
+
+---
+
+### If You Want to Reattach Later (Recommended)
+
+Use **`tmux`** or **`screen`** instead of `disown`.
+These let you detach/reattach and keep full control of the program, including its stdout/stderr.
+
+Example with `tmux`:
+
+```bash
+tmux new -s mysession
+./my_app
+```
+
+Then press `Ctrl+B` followed by `D` to detach.
+Later (even after SSH reconnect):
+
+```bash
+tmux attach -t mysession
+```
+
+You will see the program’s live output, just like you never left.
+
+---
+
+### If You Already Used `disown`
+
+You can still read the output if you redirected it to a file:
+
+```bash
+./my_app > my_app.log 2>&1 &
+disown
+```
+
+Then later:
+
+```bash
+tail -f my_app.log
+```
+
+But you cannot interact with it (send keystrokes, etc.) or see live stdout in the same terminal session — only the file contents.
+
+---
+
+So:
+
+* **disown** = keeps running but no reattach
+* **nohup** = keeps running but no reattach
+* **tmux/screen** = keeps running AND you can reattach, see output, interact
+
+---
+
+Do you want me to give you a minimal `tmux` workflow so you can use it quickly without learning too many commands?
+
+
+}
+
+
+if my app is Protocol_Bridge.out help me use tmux to put it in background and bring it back again
+{
+
+Got it — here’s a **minimal tmux workflow** for running `Protocol_Bridge.out` in the background and reattaching later.
+
+---
+
+### Step 1 — Start a tmux session
+
+```bash
+tmux new -s bridge
+```
+
+* `bridge` is just the session name (you can pick any name).
+* You will now be inside tmux (looks just like a normal shell).
+
+---
+
+### Step 2 — Run your app inside tmux
+
+```bash
+./Protocol_Bridge.out
+```
+
+It will run and show output normally.
+
+---
+
+### Step 3 — Detach (put tmux in background)
+
+Press:
+**`Ctrl + B`** (release both) then press **`D`**
+
+You will see:
+
+```
+[detached (from session bridge)]
+```
+
+Your app keeps running in the background — even if you close SSH.
+
+---
+
+### Step 4 — Reattach later
+
+Reconnect to your VM via SSH, then run:
+
+```bash
+tmux attach -t bridge
+```
+
+You’ll be back inside the same session, seeing the live output.
+
+---
+
+### Extra Tips
+
+* If you forget the session name:
+
+```bash
+tmux ls
+```
+
+This lists all tmux sessions.
+Then attach:
+
+```bash
+tmux attach -t <session-name>
+```
+
+* If you want multiple tmux sessions, give each a different name:
+
+```bash
+tmux new -s something_else
+```
+
+* To completely kill the session (and the app inside):
+
+```bash
+tmux kill-session -t bridge
+```
+
+---
+
+Would you like me to give you a **single command** that starts tmux, runs `Protocol_Bridge.out`, and leaves it running (so you can attach later with no extra steps)?
+
+
+}
+
+
+why ctrl B not work
+{
+
+Good catch — if **Ctrl +B** doesn’t seem to work, there are a few possible reasons. Let’s troubleshoot and fix it:
+
+---
+
+### 1. Confirm You’re Really Inside `tmux`
+
+After running:
+
+```bash
+tmux new -s bridge
+```
+
+you should see a new shell. Usually, tmux adds a small status bar at the bottom (often shows `[bridge]` and time).
+If you don’t see that bar, you might not actually be inside tmux.
+
+Check with:
+
+```bash
+echo $TERM
+```
+
+If it says `screen` or `tmux-256color`, you are in tmux.
+If it just says `xterm` or similar, you never entered tmux — re-run `tmux new -s bridge`.
+
+---
+
+### 2. Correct Key Sequence
+
+Detaching requires two steps (not holding keys together):
+
+1. **Hold Ctrl**, press **B**, then release both keys
+2. Press **D**
+
+You should see:
+
+```
+[detached (from session bridge)]
+```
+
+---
+
+### 3. If Ctrl +B Is Remapped or Colliding
+
+Some terminal emulators or configs remap tmux’s prefix key.
+Check your prefix key with:
+
+```bash
+tmux list-keys | grep detach
+```
+
+You should see something like:
+
+```
+bind-key -T prefix d detach-client
+```
+
+Meaning `prefix` + `d` detaches.
+If prefix is remapped, check:
+
+```bash
+tmux show -g prefix
+```
+
+Default is `C-b` (Control-B).
+If it shows something else (e.g., `C-a`), then use that instead.
+
+---
+
+### 4. Alternative Detach Command
+
+You can always detach without using the key combo:
+
+```bash
+tmux detach
+```
+
+Type that inside tmux — it does the same thing as Ctrl +B, D.
+
+---
+
+### Quick Test
+
+Try this sequence step by step:
+
+```bash
+tmux new -s test
+```
+
+Then inside tmux, type:
+
+```bash
+tmux detach
+```
+
+If you see `[detached]`, it worked — then you can reattach with:
+
+```bash
+tmux attach -t test
+```
+
+---
+
+Do you want me to show you how to make **tmux automatically start `Protocol_Bridge.out`** when you create the session (so you don’t have to type anything inside)?
+
+
+}

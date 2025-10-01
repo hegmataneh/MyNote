@@ -1,6 +1,16 @@
 to learn
 {
 
+	ssl ssh tls cache dictionary linked list heap stack queue tree binary tree array nested loop time complexity 
+	
+	balance tree 
+	
+	transient errors and hard errors
+
+	in NUMA how much stack exist and how much heap exist
+
+	port va chanell ram and bus ram and cpu
+
 	پلاگین وورد ویراستی برای رفع خطاهای نگارش
 
 	why alignment in struct

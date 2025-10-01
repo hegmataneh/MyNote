@@ -1,0 +1,83 @@
+which book i read that help me code better in c for high performance code
+{
+
+For **high-performance C programming**, you’ll want books that go beyond syntax and teach you how the CPU, memory, and compiler work — so you can write code that uses caches efficiently, avoids bottlenecks, and exploits modern CPU features.
+
+Here’s a curated list (practical → deep theory):
+
+---
+
+## 1. **Practical Performance-Oriented C**
+
+These are best starting points if you want hands-on improvement quickly.
+
+* **Modern C** – Jens Gustedt
+  *Focus:* Correct, modern, and portable C (C11/C17). Strong foundation to avoid UB (undefined behavior) that kills performance.
+  Good before you start tuning for speed.
+
+* **21st Century C** – Ben Klemens
+  *Focus:* Practical build systems, testing, libraries, and modern style — helps you write maintainable yet fast C.
+
+---
+
+## 2. **CPU Architecture & Memory Awareness**
+
+Performance is mostly about understanding **how CPUs fetch data**.
+
+* **Computer Systems: A Programmer’s Perspective (CS\:APP)** – Bryant & O’Hallaron
+  *Focus:* Caching, memory hierarchy, and how code is executed.
+  Has great sections on **cache-friendly coding** and **performance measurement**.
+
+* **Programming from the Ground Up** – Jonathan Bartlett (free PDF)
+  *Focus:* Assembly-level thinking for C programmers — you learn what compiler generates, useful for tuning.
+
+---
+
+## 3. **Algorithmic & Low-Level Optimization**
+
+Once you know the architecture, move to algorithm design and micro-optimizations.
+
+* **Algorithms in C** – Robert Sedgewick
+  *Focus:* Data structures and algorithms that are cache-aware and practical.
+
+* **Optimizing C in the Real World** – Agner Fog (free online)
+  *Focus:* Instruction-level optimization, CPU pipelines, vectorization.
+  Agner Fog’s optimization manuals are legendary for understanding **what compilers actually do**.
+
+---
+
+## 4. **Serious Performance Tuning**
+
+If you want to squeeze every cycle from hardware:
+
+* **Computer Organization and Design: The Hardware/Software Interface** – David A. Patterson & John L. Hennessy
+  *Focus:* Deep hardware-level details, teaches you to write code that maps well to microarchitecture.
+
+* **High Performance Computing** – Charles Severance
+  *Focus:* Parallel programming, memory bandwidth, cache coherence, NUMA-aware design.
+
+---
+
+## 5. **Profiling and Tools**
+
+Books are good, but practice matters. Learn to use:
+
+* **perf** (Linux performance profiler)
+* **valgrind / cachegrind**
+* **gprof**
+* **clang/gcc -O3 -march=native -S** (inspect assembly)
+
+---
+
+### Recommended Learning Order
+
+1. **Modern C** → solid, clean codebase.
+2. **CS\:APP** → understand CPU, memory, cache, and what kills performance.
+3. **Agner Fog manuals** + practice using `perf` → learn to optimize real hot loops.
+
+---
+
+Do you want me to prepare you a **progressive reading + practice plan** (with small coding exercises) so you can improve step-by-step instead of reading everything at once? That would give you a structured roadmap.
+
+
+}
