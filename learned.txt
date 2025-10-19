@@ -1,4 +1,104 @@
 
+callstack trace with backtrace
+{
+	install with
+	{
+		git clone https://github.com/ianlancetaylor/libbacktrace.git
+		cd libbacktrace 
+		mkdir build 
+		cd build 
+		../configure 
+		sudo make 
+		sudo make install
+	}
+	
+	my code is
+	{
+		#include <stdio.h>
+		#include <stdlib.h>
+		#include <backtrace.h>
+
+		// Callback when we successfully get a frame
+		static int full_callback( void * data , uintptr_t pc ,
+			const char * filename , int lineno ,
+			const char * function )
+		{
+			( void )data;
+			printf( "  %s at %s:%d (pc=0x%lx)\n" ,
+				function ? function : "??" ,
+				filename ? filename : "??" ,
+				lineno ,
+				( unsigned long )pc );
+			return 0; // continue
+		}
+
+		// Callback for errors
+		static void error_callback( void * data , const char * msg , int errnum )
+		{
+			( void )data;
+			fprintf( stderr , "libbacktrace error: %s (%d)\n" , msg , errnum );
+		}
+
+		// Your function to print a stack trace
+		void print_stacktrace()
+		{
+			struct backtrace_state * state =
+				backtrace_create_state( NULL , /* filename = current executable */
+					1 ,    /* threaded = yes */
+					error_callback ,
+					NULL );
+
+			backtrace_full( state , 0 , full_callback , error_callback , NULL );
+		}
+
+		// Dummy call chain
+		void deep3()
+		{
+			print_stacktrace();
+		}
+		void deep2()
+		{
+			deep3();
+		}
+		void deep1()
+		{
+			deep2();
+		}
+
+		int main()
+		{
+			deep1();
+			return 0;
+		}
+	}
+	
+	linkage
+	{
+		add backtrace to project
+	}
+	
+}
+
+
+14040722
+
+----------
+
+وقتی callback می زنیم در واقع ادامه کد از یک جای دیگری است و cache line به مشکل بر می خورد و در واقع حافظه ای miss می شود
+
+14040721
+
+--------------
+
+ __attribute__((cleanup(cleanup_callback))) int x = 42;
+
+
+MTU در ویندوز و linux فرق می کند
+
+14040719
+
+-------
+
 برای نصب یک چیزی در سروری که فقط proxychain دارد باید سمت bash هم با procychain زد وگرنه کار نمی کند
 
 14040714

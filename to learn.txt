@@ -1,5 +1,9 @@
 to learn
 {
+	url stream ?
+	
+	download stream ?
+
 
 	ssl ssh tls cache dictionary linked list heap stack queue tree binary tree array nested loop time complexity 
 	

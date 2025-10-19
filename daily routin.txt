@@ -69,6 +69,7 @@ ssh root@192.168.56.60
 123456
 
 ssh root@192.168.56.61
+123456
 
 - See www.geeksforgeeks.org/linux-unix
 
