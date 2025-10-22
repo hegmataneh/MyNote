@@ -1,3 +1,35 @@
+tcp connection keep alive
+
+14040728
+
+----------
+
+برای پروژه جدید
+{
+	- کارهاتو فاز بندی کن الکی فاز یک رو بزرگ نگیر بزار به چشم بیاد در فاز بندی حرف خودتو بزن که زود تحویل بدی
+	- یک سری چیزها رو غیر مرتبط کن با sub pub
+	- برای زمان دادن ضریب تست هم در نظر بگیرد بسته به بزرگی کار
+	- در زمان دادم ضریب حواس پرتی را لحاظ کن
+	- ضریب معاشرت
+	- ضریب مطالعه هم در نظر بگیر
+	- برای ریسک های احتمالی کار نکردن زمان در نظر بگیر( زمان تخمینی بدهیم و دقیق بهش عمل کنیم مگه میشه )
+	- ضریب پروژه جدید و تحقیق در خصوص feasibility
+	- ضریب استراحت
+	- با این فرض زمان نده که همه چیز خوب پیش میره
+	- هیچ وقت اسم متغیر را i , j نگذار
+	- قانون first touch را برای مموری ها رعایت کن
+	- Affinity هام درست باشد که thread ها در دسترسی به حافظه بیشترین سرعت را داشته باشند
+	- tag function thread safe and largedata
+	- رعایت false sharing و alignment را بکن سرعت رایت بیشتر بشه . جایی که چند تا ترد متغیر های نزدیک هم را تاچ می کند
+		بین متغیر های با دسترسی زیاد 64 Byte فاصله باشه و کل ساختار align 64 باشه
+	- memory move unsafe tags my code
+	- همه توابع که ورودی می گیرد چک کند مقدارش نال نباشد مثلا زیرا خروجی های چت جی پی تی همه اش اینرا رعایت می کند
+	- memory leaks
+	- gracefull degredation
+	- descent closure
+	- comment fxn
+	- test case
+}
 
 callstack trace with backtrace
 {
@@ -145,22 +177,22 @@ raw packet capturing not defragment udp packet
 speed up wrap around number
 {
 	In a circular buffer, when the head index reaches the end of the buffer, it must wrap back to 0.
-Normally you’d write:
+	Normally you’d write:
 
-head = (head + 1) % BUFFER_SIZE;
-
-
-But % (modulo) is relatively slow.
-If BUFFER_SIZE is a power of 2, we can use bitwise AND:
-
-head = (head + 1) & (BUFFER_SIZE - 1);
+	head = (head + 1) % BUFFER_SIZE;
 
 
-This is much faster because:
+	But % (modulo) is relatively slow.
+	If BUFFER_SIZE is a power of 2, we can use bitwise AND:
 
-For BUFFER_SIZE = 8, BUFFER_SIZE - 1 = 7 = 0b0111.
+	head = (head + 1) & (BUFFER_SIZE - 1);
 
-& 0b0111 just keeps the lowest 3 bits of head, effectively doing a modulo-8 operation.
+
+	This is much faster because:
+
+	For BUFFER_SIZE = 8, BUFFER_SIZE - 1 = 7 = 0b0111.
+
+	& 0b0111 just keeps the lowest 3 bits of head, effectively doing a modulo-8 operation.
 }
 
 - when remove all breakpoint my stack trace work fine
@@ -182,6 +214,10 @@ init VM in virtualbox
 	- sudo apt install libncurses5-dev libncursesw5-dev
 	- sudo apt install -y libnotcurses-dev pkg-config build-essential
 	- sudo apt install libnotcurses-dev
+	
+	- add -pthread  into linker
+	- add ncurses;pcap;pthread;notcurses;notcurses-core to linker
+	- enable sanitizer on compiler configuration
 }
 
 14040618
@@ -250,12 +286,12 @@ VBoxManage.exe list vms // لیست ماشینهای مجازی
 
 {
 	
-Check Disk Space: Run the following command to check the available space on the filesystem where /tmp resides:
-df -h /tmp
-Clear /tmp: Temporary files in /tmp are often safe to delete (ensure no critical processes are using them)
-rm -rf /tmp/'*
-Check large files: Find large files elsewhere on the filesystem
-du -ah / | sort -rh | head -n 10
+	Check Disk Space: Run the following command to check the available space on the filesystem where /tmp resides:
+	df -h /tmp
+	Clear /tmp: Temporary files in /tmp are often safe to delete (ensure no critical processes are using them)
+	rm -rf /tmp/'*
+	Check large files: Find large files elsewhere on the filesystem
+	du -ah / | sort -rh | head -n 10
 
 }
 
@@ -587,6 +623,11 @@ proxychains // how to use ipchains to pass packet from virtual machine traffic t
 	install proxychains
 	
 	sudo nano /etc/proxychains.conf
+	
+	to setup i have file that asked from chatgpt
+	{
+		i have machine name A that has internet and has ip 192.168.1.2 and 2.189.5.118 and i have another machine name B that does not have internet. B see A so i want to configure A and B that B can curl and wget from internet please help me step by step install proxychains and configure and please do not tell me just what to do get me command and please be so detail ish
+	}
 	
 	at [ProxyList] -> 
 	{

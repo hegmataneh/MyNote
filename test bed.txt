@@ -163,14 +163,27 @@ chmod -R 755 /home/user/projects
 cd \\\Secure FTP\SFTP\home\user\projects
 
 
-dumpcap -i any -f "udp port 10200" -c 5000 -a duration:30
+dumpcap -i any -f "udp port 10200" -c 50 -a duration:10
 
-dumpcap -i any -f "udp port 10200" -c 5000
+dumpcap -i any -f "udp port 10200" -c 50
 
 
-sudo tshark -i any -f "udp dst portrange 10200-10205"
+sudo tshark -i ens160 -f "udp dst portrange 10200-10202"
 
 sudo tshark -i any -f "udp dst portrange 10200-10205" -V
+
+
+sudo tshark -i any -f "udp dst portrange 10203-10205" -T fields \
+-e _ws.col.Info \
+-e ip.src -e udp.srcport -e frame.interface_id \
+-e ip.dst -e udp.dstport -e frame.interface_id
+
+
+sudo tshark -i any -f "udp dst portrange 10204-10210" -T fields \
+-e _ws.col.Info \
+-e ip.src -e udp.srcport -e frame.interface_id \
+-e ip.dst -e udp.dstport -e frame.interface_id
+
 
 sudo tshark -i any -f "ip and udp dst portrange 10200-10205" \
   -T fields -e ip.src -e udp.dstport -e frame.len -e ip.flags.mf -e ip.frag_offset
@@ -210,6 +223,8 @@ tshark -i any -f "udp dst port 10200" -o ip.defragment:TRUE -o udp.reassemble:TR
 sudo tshark -i ens160 -f "udp dst port 10200"
 sudo tshark -i ens194 -f "udp dst port 10200"
 
+sudo tshark -i any -f "udp dst port 10200"
+
 
 ./Protocol_Bridge.out &
 disown
@@ -234,10 +249,28 @@ sudo tshark -i any -f "udp and host 172.17.0.59 and dst host 172.17.0.60" -x
 
 
 
-ASAN_OPTIONS=detect_leaks=1:leak_check_at_exit=1 ./tst_LeakSanitizer.out
+ls -l /root/projects/read_tcp_data/read_tcp_data/bin/x64/Debug/read_tcp_data.out
 
 
-g++ main.c -o -fsanitize=address -static-libasan -g
+sudo chmod +x /root/projects/read_tcp_data/bin/x64/Debug/read_tcp_data.out
 
 
-gcc main.c -o leak -fsanitize=address -static-libasan
+echo "deb http://ddebs.ubuntu.com $(lsb_release -cs) main restricted universe multiverse" | sudo tee /etc/apt/sources.list.d/ddebs.list
+echo "deb http://ddebs.ubuntu.com $(lsb_release -cs)-updates main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list.d/ddebs.list
+echo "deb http://ddebs.ubuntu.com $(lsb_release -cs)-proposed main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list.d/ddebs.list
+sudo apt-get install ubuntu-dbgsym-keyring
+sudo apt-get update
+
+
+# For GCC 9 or 10 (Ubuntu 20.04)
+sudo apt-get install libasan5-dbgsym
+
+# For GCC 11 (Ubuntu 22.04)
+sudo apt-get install libasan6-dbgsym
+
+# For GCC 12 (Ubuntu 24.04)
+sudo apt-get install libasan8-dbgsym
+
+
+# run as root (or use sudo) so you can write to /root/projects on the receiver
+sudo wget -r -np -nH --cut-dirs=0 -R "index.html*" -P /root/projects http://10.202.18.88:8000/

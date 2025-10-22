@@ -1,0 +1,76 @@
+CMake 3.21.0 or higher is required.  You are running version 3.16.3
+
+Right — that error happens because **Ubuntu 20.04 (and earlier)** ships with `cmake 3.16`, but **Notcurses requires ≥ 3.21**.
+You can easily fix this by installing a **newer CMake manually**.
+
+Here’s the cleanest and safest way to do it:
+
+---
+
+## ✅ **Option 1: Install latest CMake from Kitware repository (recommended)**
+
+This method gives you an official, maintained version via apt — no manual builds.
+
+```bash
+sudo apt remove --purge cmake -y
+sudo apt update
+sudo apt install -y software-properties-common lsb-release gpg
+
+# Add Kitware's official APT repository
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://apt.kitware.com/keys/kitware-archive-latest.asc | \
+  sudo gpg --dearmor -o /etc/apt/keyrings/kitware-archive-keyring.gpg
+
+sudo apt-add-repository \
+  "deb [signed-by=/etc/apt/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main"
+
+sudo apt update
+sudo apt install -y cmake
+```
+
+Then check version:
+
+```bash
+cmake --version
+```
+
+You should see **3.28** or newer.
+
+---
+
+## ✅ **Option 2: Build CMake from source (if repository unavailable)**
+
+If Kitware’s repo doesn’t support your Ubuntu version, build it yourself:
+
+```bash
+sudo apt install -y wget build-essential libssl-dev
+wget https://github.com/Kitware/CMake/releases/download/v3.28.1/cmake-3.28.1.tar.gz
+tar -xzvf cmake-3.28.1.tar.gz
+cd cmake-3.28.1
+./bootstrap
+make -j$(nproc)
+sudo make install
+```
+
+Then verify:
+
+```bash
+cmake --version
+```
+
+---
+
+After updating CMake, you can re-run your Notcurses build:
+
+```bash
+cd ~/notcurses/build
+cmake ..
+make -j$(nproc)
+sudo make install
+sudo ldconfig
+```
+
+---
+
+Would you like me to give you a **script** that automatically installs both the new CMake and Notcurses from source (so you can just run it once)?
+

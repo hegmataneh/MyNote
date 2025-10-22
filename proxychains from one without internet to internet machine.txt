@@ -1,0 +1,307 @@
+i have machine name A that has internet and has ip 192.168.1.2 and 2.189.5.118
+and i have another machine name B that does not have internet.
+B see A
+so i want to configure A and B that B can curl and wget from internet
+please help me step by step install proxychains and configure and please do not tell me just what to do get me command
+and please be so detail ish
+{
+
+Nice — this is totally doable. Below I give a **complete, copy-pasteable** set of commands (organized step-by-step) so **B** can `curl`/`wget` to the internet by tunneling through **A**. I’ll:
+
+* Install `proxychains` on **B**
+* Ensure `sshd` is running on **A**
+* Create an SSH key on **B** and copy it to **A** (so the tunnel can run without typing a password)
+* Launch an SSH dynamic SOCKS5 tunnel from **B** → **A**
+* Configure `proxychains` on **B** to use the local SOCKS5
+* Show how to test `curl`/`wget`
+* (Optional) systemd unit on **B** to keep the tunnel alive
+
+> Replace `username_on_A` with the actual account name on machine **A**. I use the IP `192.168.1.2` for the LAN address of **A** (you provided both addresses; use the LAN IP for local connections).
+
+---
+
+# 1) On machine A (the internet-connected host, IP 192.168.1.2)
+
+Make sure sshd is installed & running.
+
+If A is Ubuntu/Debian:
+
+```bash
+# on A (Ubuntu/Debian)
+sudo apt update
+sudo apt install -y openssh-server
+sudo systemctl enable --now ssh
+sudo ss -tunlp | grep sshd   # confirm sshd listening
+```
+
+If A is CentOS/RHEL (7/8) / Rocky/Alma:
+
+```bash
+# on A (CentOS/RHEL)
+sudo yum install -y openssh-server
+sudo systemctl enable --now sshd
+sudo ss -tunlp | grep sshd   # confirm sshd listening
+```
+
+(If firewall blocks SSH on A, allow port 22 — example for UFW on A:)
+
+```bash
+sudo ufw allow 22/tcp
+sudo ufw reload
+```
+
+---
+
+# 2) On machine B (the offline machine that can reach A)
+
+Install the client tools and `proxychains`. I show commands for Debian/Ubuntu and for RHEL/CentOS variants.
+
+Ubuntu/Debian on B:
+
+```bash
+# on B (Ubuntu/Debian)
+sudo apt update
+sudo apt install -y openssh-client proxychains4
+# note: package name may be 'proxychains4' or 'proxychains' depending on the distro.
+```
+
+CentOS/RHEL on B:
+
+```bash
+# on B (CentOS/RHEL)
+sudo yum install -y openssh-clients
+# proxychains may not be in base repos; try EPEL then install:
+sudo yum install -y epel-release
+sudo yum install -y proxychains-ng   # or `proxychains` if available
+# if the package name isn't found, try: sudo yum search proxychains
+```
+
+If the package installed is `proxychains4` or `proxychains-ng`, the config path may be `/etc/proxychains4.conf` or `/etc/proxychains.conf`. I’ll handle either below.
+
+---
+
+# 3) Create SSH key on B and copy it to A (so tunnel runs without password)
+
+On **B**:
+
+```bash
+# on B
+ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_proxy -N "" -C "proxy-key-for-A"
+# copy the key to A (replace username_on_A and A's IP if needed)
+ssh-copy-id -i ~/.ssh/id_ed25519_proxy.pub username_on_A@192.168.1.2
+# if ssh-copy-id not available:
+# cat ~/.ssh/id_ed25519_proxy.pub | ssh username_on_A@192.168.1.2 "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys"
+```
+
+Test you can SSH from B to A passwordless:
+
+```bash
+ssh -i ~/.ssh/id_ed25519_proxy username_on_A@192.168.1.2 'echo "hello from A: $(hostname)"; uname -a'
+```
+
+---
+
+# 4) Start an SSH dynamic SOCKS5 tunnel from B (creates local SOCKS5 on B:1080)
+
+On **B** run (backgrounding with `-f -N`):
+
+```bash
+# on B: start local SOCKS5 on 127.0.0.1:1080
+ssh -f -N -D 127.0.0.1:1080 -i ~/.ssh/id_ed25519_proxy username_on_A@192.168.1.2
+# verify tunnel:
+ss -tunlp | grep 1080 || ss -tunlp | grep ssh
+# or:
+lsof -i :1080 || netstat -tulpen | grep 1080
+```
+
+Explanation: `-D 127.0.0.1:1080` opens a local SOCKS5 proxy on B, which forwards traffic through A to the internet.
+
+If you want to see log output instead of backgrounding, run without `-f -N`:
+
+```bash
+ssh -v -D 127.0.0.1:1080 -i ~/.ssh/id_ed25519_proxy username_on_A@192.168.1.2
+```
+
+---
+
+# 5) Configure proxychains on B to use the local SOCKS5
+
+Find the proxychains config file — it’s usually `/etc/proxychains.conf` or `/etc/proxychains4.conf`.
+
+I’ll provide commands that:
+
+* enable `proxy_dns` (so DNS is resolved through the proxy),
+* set `dynamic_chain` (flexible; falls back if a proxy is down),
+* and append `socks5 127.0.0.1 1080` at the end.
+
+Run on **B** (works whether file is proxychains.conf or proxychains4.conf):
+
+```bash
+# on B - find config (one of these should exist)
+if [ -f /etc/proxychains.conf ]; then
+  CFG=/etc/proxychains.conf
+elif [ -f /etc/proxychains4.conf ]; then
+  CFG=/etc/proxychains4.conf
+else
+  echo "Proxychains config not found in /etc. Install package properly." >&2
+  exit 1
+fi
+echo "Using $CFG"
+
+# backup config
+sudo cp "$CFG" "${CFG}.bak.$(date +%Y%m%d%H%M%S)"
+
+# enable proxy_dns (uncomment or add)
+sudo sed -i 's/^# *proxy_dns/proxy_dns/' "$CFG" || true
+# set dynamic_chain (comment out strict_chain then enable dynamic_chain)
+sudo sed -i 's/^strict_chain/# strict_chain/' "$CFG" || true
+sudo sed -i 's/^# *dynamic_chain/dynamic_chain/' "$CFG" || true
+
+# remove any existing socks5 lines at end to avoid duplicates, then append the socks5 line
+sudo sed -i '/^socks5 127.0.0.1 1080/d' "$CFG"
+echo "socks5 127.0.0.1 1080" | sudo tee -a "$CFG" >/dev/null
+
+# show tail of config to verify
+sudo tail -n 20 "$CFG"
+```
+
+You should see `proxy_dns` enabled, `dynamic_chain`, and `socks5 127.0.0.1 1080` at the bottom.
+
+---
+
+# 6) Test curl/wget via proxychains on B
+
+Use `proxychains` (or `proxychains4`) to run wget/curl through the SOCKS proxy:
+
+```bash
+# on B - test with curl
+proxychains4 curl -I https://example.com
+# or if binary is proxychains:
+proxychains curl -I https://example.com
+
+# test with wget
+proxychains4 wget -O - https://ifconfig.co/ip | head -n1
+# this will show the public IP as seen from the internet (should be A's public IP 2.189.5.118)
+```
+
+If proxychains command name is `proxychains` use that. You can see which exists with:
+
+```bash
+which proxychains proxychains4 || echo "use proxychains or proxychains4"
+```
+
+If you get `connection refused`, ensure:
+
+* The SSH tunnel is running (`ss -tunlp | grep 1080`)
+* You can SSH manually from B to A
+* No local firewall blocks 127.0.0.1:1080
+
+You can also test raw SOCKS with `curl` built with socks support (curl >=7.18 supports `--socks5-hostname`):
+
+```bash
+# direct curl via socks (no proxychains)
+curl --socks5-hostname 127.0.0.1:1080 https://example.com -I
+```
+
+---
+
+# 7) (Optional) Create a systemd service on B to keep the SSH SOCKS tunnel up
+
+If you want the tunnel to start on boot and auto-restart, create a template service. On **B**:
+
+Create `/etc/systemd/system/ssh-socks@.service` (requires sudo). Paste and enable:
+
+```bash
+sudo tee /etc/systemd/system/ssh-socks@.service > /dev/null <<'EOF'
+[Unit]
+Description=Persistent SSH dynamic SOCKS5 tunnel to %i
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=%i
+Type=simple
+Restart=always
+RestartSec=5
+# KeepAlive options:
+# Replace username_on_A and 192.168.1.2 below if different.
+ExecStart=/usr/bin/ssh -o ExitOnForwardFailure=yes -o ServerAliveInterval=60 -o ServerAliveCountMax=3 -D 127.0.0.1:1080 -i /home/%i/.ssh/id_ed25519_proxy username_on_A@192.168.1.2 -N
+Environment=HOME=/home/%i
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Reload daemon
+sudo systemctl daemon-reload
+
+# Enable and start service for the current user (replace $USER if needed)
+sudo systemctl enable --now ssh-socks@"$(whoami)"
+sudo systemctl status ssh-socks@"$(whoami)" --no-pager
+```
+
+Notes:
+
+* This template expects the private key at `/home/<user>/.ssh/id_ed25519_proxy`. Adjust path if you used a different key or if you want to use a dedicated local user.
+* If you want the service to run as a specific non-interactive user, run `sudo systemctl enable --now ssh-socks@thatuser`.
+
+---
+
+# Troubleshooting quick checks
+
+* `ssh -v -D 127.0.0.1:1080 username_on_A@192.168.1.2` — verbose SSH to watch what happens.
+* `ss -tunlp | grep 1080` — ensure the local socks port is listening.
+* `sudo tail -n 200 /var/log/auth.log` (on A) — check if SSH authentication fails.
+* If DNS fails: ensure `proxy_dns` is enabled in proxychains config.
+* If `proxychains` does not work for an app, try the app’s direct SOCKS support (e.g., `curl --socks5-hostname`).
+
+---
+
+# Quick summary (commands to run, in order)
+
+On **A**:
+
+```bash
+# ensure sshd is running
+sudo apt update; sudo apt install -y openssh-server
+sudo systemctl enable --now ssh
+```
+
+On **B**:
+
+```bash
+# install tools
+sudo apt update; sudo apt install -y openssh-client proxychains4
+
+# create key and copy to A (replace username_on_A)
+ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_proxy -N ""
+ssh-copy-id -i ~/.ssh/id_ed25519_proxy.pub username_on_A@192.168.1.2
+
+# start ssh dynamic socks
+ssh -f -N -D 127.0.0.1:1080 -i ~/.ssh/id_ed25519_proxy username_on_A@192.168.1.2
+
+# configure proxychains (example auto-edit)
+CFG=/etc/proxychains4.conf
+sudo cp "$CFG" "${CFG}.bak"
+sudo sed -i 's/^# *proxy_dns/proxy_dns/' "$CFG"
+sudo sed -i 's/^strict_chain/# strict_chain/' "$CFG"
+sudo sed -i 's/^# *dynamic_chain/dynamic_chain/' "$CFG"
+sudo sed -i '/^socks5 127.0.0.1 1080/d' "$CFG"
+echo "socks5 127.0.0.1 1080" | sudo tee -a "$CFG"
+
+# test
+proxychains4 curl -I https://example.com
+```
+
+---
+
+If you want, I can:
+
+* Generate a ready-to-use `systemd` service tuned for your actual B username (tell me the username on B — I’ll not ask for anything else), or
+* Show how to restrict the tunnel to only allow specific outbound ports, or
+* Show how to use `tsocks` or `redsocks` if you prefer transparent proxying instead of using `proxychains`.
+
+Which of those (if any) would you like next?
+
+
+}

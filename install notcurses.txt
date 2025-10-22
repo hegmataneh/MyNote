@@ -1,0 +1,777 @@
+how to install notcurses in ubuntu
+
+You can install **notcurses** in Ubuntu easily using `apt`, since it’s available in the official repositories.
+Here’s how you can do it step by step:
+
+---
+
+### 1. Update package list
+
+```bash
+sudo apt update
+```
+
+---
+
+### 2. Install notcurses and its development files
+
+If you just need to run programs that use notcurses:
+
+```bash
+sudo apt install notcurses-bin
+```
+
+If you also want to develop C programs with notcurses (recommended):
+
+```bash
+sudo apt install libnotcurses-dev
+```
+
+This will install:
+
+* `libnotcurses` (core library)
+* `libnotcurses-core` (core functionality)
+* `libnotcurses-dev` (headers for development)
+* `notcurses-bin` (demo programs like `ncplayer`, `notcurses-demo`)
+
+---
+
+### 3. (Optional) Install latest version from source
+
+Ubuntu repos might not have the latest version.
+To build from source:
+
+```bash
+sudo apt install cmake build-essential libdeflate-dev libunistring-dev libncurses-dev pkg-config
+git clone https://github.com/dankamongmen/notcurses.git
+cd notcurses
+mkdir build && cd build
+cmake ..
+make -j$(nproc)
+sudo make install
+sudo ldconfig
+```
+
+This will give you the newest notcurses release from GitHub.
+
+---
+
+Do you want me to give you a **minimal C example** using notcurses (to test if the installation works)?
+
+
+
+it says Unable to locate package libnotcurses-dev
+
+That means your Ubuntu release doesn’t have `libnotcurses-dev` in its default package repository — this is common if you’re on an older Ubuntu (like 20.04 or earlier), because `notcurses` was only added to Ubuntu starting with **22.04 (Jammy Jellyfish)**.
+
+You have three options:
+
+---
+
+## Option 1: Install via Snap (Quickest, No Compile Needed)
+
+```bash
+sudo snap install notcurses
+```
+
+This gives you the **notcurses demo binaries** (`notcurses-demo`, `ncplayer`), but **not development headers**.
+If you just want to try notcurses visually, this is enough.
+
+---
+
+## Option 2: Upgrade Your Package Sources (if on Ubuntu 20.04)
+
+You can enable the `jammy` repository just for notcurses, but this risks dependency issues.
+Instead, I recommend **Option 3** below if you need headers.
+
+---
+
+## Option 3: Build from Source (Recommended for Development)
+
+If you want to write C code with notcurses, building from source is the way to go:
+
+```bash
+sudo apt update
+sudo apt install -y git cmake build-essential libdeflate-dev libunistring-dev libncurses-dev pkg-config
+
+# Clone latest notcurses
+git clone https://github.com/dankamongmen/notcurses.git
+cd notcurses
+
+# Build
+mkdir build && cd build
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+make -j$(nproc)
+
+# Install system-wide
+sudo make install
+sudo ldconfig
+```
+
+After this, you will have:
+
+* Libraries installed in `/usr/lib`
+* Headers in `/usr/include/notcurses`
+* `notcurses-demo` and `ncplayer` available
+
+You can then compile C code like this:
+
+```bash
+gcc myprog.c -o myprog -lnotcurses -lnotcurses-core
+```
+
+---
+
+Would you like me to give you a **minimal C test program** that uses notcurses, so you can verify your build works?
+
+
+
+CMake 3.21.0 or higher is required.  You are running version 3.16.3
+
+
+
+
+Right — that error happens because **Ubuntu 20.04 (and earlier)** ships with `cmake 3.16`, but **Notcurses requires ≥ 3.21**.
+You can easily fix this by installing a **newer CMake manually**.
+
+Here’s the cleanest and safest way to do it:
+
+---
+
+## ✅ **Option 1: Install latest CMake from Kitware repository (recommended)**
+
+This method gives you an official, maintained version via apt — no manual builds.
+
+```bash
+sudo apt remove --purge cmake -y
+sudo apt update
+sudo apt install -y software-properties-common lsb-release gpg
+
+# Add Kitware's official APT repository
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://apt.kitware.com/keys/kitware-archive-latest.asc | \
+  sudo gpg --dearmor -o /etc/apt/keyrings/kitware-archive-keyring.gpg
+
+sudo apt-add-repository \
+  "deb [signed-by=/etc/apt/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main"
+
+sudo apt update
+sudo apt install -y cmake
+```
+
+Then check version:
+
+```bash
+cmake --version
+```
+
+You should see **3.28** or newer.
+
+---
+
+## ✅ **Option 2: Build CMake from source (if repository unavailable)**
+
+If Kitware’s repo doesn’t support your Ubuntu version, build it yourself:
+
+```bash
+sudo apt install -y wget build-essential libssl-dev
+wget https://github.com/Kitware/CMake/releases/download/v3.28.1/cmake-3.28.1.tar.gz
+tar -xzvf cmake-3.28.1.tar.gz
+cd cmake-3.28.1
+./bootstrap
+make -j$(nproc)
+sudo make install
+```
+
+Then verify:
+
+```bash
+cmake --version
+```
+
+---
+
+After updating CMake, you can re-run your Notcurses build:
+
+```bash
+cd ~/notcurses/build
+cmake ..
+make -j$(nproc)
+sudo make install
+sudo ldconfig
+```
+
+---
+
+Would you like me to give you a **script** that automatically installs both the new CMake and Notcurses from source (so you can just run it once)?
+
+
+
+bash: /usr/bin/cmake: No such file or directory
+
+
+That means your old `/usr/bin/cmake` got removed (when you purged cmake), but the new one isn’t installed yet — you’re in between the steps.
+
+Let’s fix it cleanly depending on what you were trying.
+
+---
+
+### 🧭 Step-by-step recovery
+
+Run these exactly in order:
+
+```bash
+# 1. Ensure old cmake fully gone
+sudo apt remove --purge cmake -y
+sudo rm -f /usr/bin/cmake
+
+# 2. Install prerequisites
+sudo apt update
+sudo apt install -y software-properties-common lsb-release gpg curl
+
+# 3. Add Kitware official repo for latest CMake
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://apt.kitware.com/keys/kitware-archive-latest.asc | \
+  sudo gpg --dearmor -o /etc/apt/keyrings/kitware-archive-keyring.gpg
+
+sudo apt-add-repository \
+  "deb [signed-by=/etc/apt/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main"
+
+# 4. Update and install latest CMake
+sudo apt update
+sudo apt install -y cmake
+```
+
+Then confirm it’s installed:
+
+```bash
+cmake --version
+```
+
+You should now see something like:
+
+```
+cmake version 3.28.3
+```
+
+---
+
+If you still get the same “no such file or directory”, it means the Kitware repository doesn’t support your Ubuntu version (for example, if it’s 18.04 or earlier).
+In that case, use this fallback:
+
+---
+
+### 🧱 Manual fallback (build from source)
+
+```bash
+sudo apt install -y wget build-essential libssl-dev
+wget https://github.com/Kitware/CMake/releases/download/v3.28.1/cmake-3.28.1.tar.gz
+tar -xzf cmake-3.28.1.tar.gz
+cd cmake-3.28.1
+./bootstrap
+make -j$(nproc)
+sudo make install
+```
+
+After that:
+
+```bash
+which cmake
+cmake --version
+```
+
+---
+
+Do you want me to detect your Ubuntu version (and give the exact compatible repo line or fallback automatically)?
+
+
+
+why after i install by this "sudo apt install -y wget build-essential libssl-dev
+wget https://github.com/Kitware/CMake/releases/download/v3.28.1/cmake-3.28.1.tar.gz
+tar -xzvf cmake-3.28.1.tar.gz
+cd cmake-3.28.1
+./bootstrap
+make -j$(nproc)
+sudo make install" it still get error bash: /usr/bin/cmake: No such file or directory
+
+
+
+
+Good question — that error usually means **you installed the new CMake under `/usr/local/bin/cmake`**, but your system is still trying to use the old (deleted) one at `/usr/bin/cmake`.
+
+Let’s verify and fix it cleanly.
+
+---
+
+### 🧩 Step 1: Find where new cmake is actually installed
+
+Run:
+
+```bash
+which cmake
+```
+
+If it returns nothing, try:
+
+```bash
+ls /usr/local/bin/cmake
+ls /usr/bin/cmake
+```
+
+✅ If you see `/usr/local/bin/cmake`, that’s your new one (good).
+❌ If `/usr/bin/cmake` is missing — that’s fine — Ubuntu’s default `$PATH` usually includes `/usr/local/bin`, but in some environments it doesn’t (for example, Visual Studio remote shells or restricted sessions).
+
+---
+
+### 🧭 Step 2: Fix PATH or link it manually
+
+If `cmake` is in `/usr/local/bin`, fix it like this:
+
+```bash
+sudo ln -sf /usr/local/bin/cmake /usr/bin/cmake
+```
+
+Then test:
+
+```bash
+cmake --version
+```
+
+You should see something like:
+
+```
+cmake version 3.28.1
+```
+
+---
+
+### 🧹 Step 3 (optional): Confirm PATH includes `/usr/local/bin`
+
+To make sure it works permanently for all shells:
+
+```bash
+echo $PATH
+```
+
+If `/usr/local/bin` is missing, add it to your environment:
+
+```bash
+echo 'export PATH=/usr/local/bin:$PATH' >> ~/.bashrc
+source ~/.bashrc
+```
+
+---
+
+### 🧪 Step 4: Test
+
+Now re-run your Notcurses build:
+
+```bash
+cd ~/notcurses/build
+cmake ..
+make -j$(nproc)
+sudo make install
+sudo ldconfig
+```
+
+---
+
+Would you like me to explain **why Ubuntu installs source builds under `/usr/local/bin` instead of `/usr/bin`** (and how to avoid this in future builds)?
+
+
+
+
+it says "CMake Error at /usr/local/share/cmake-3.28/Modules/FindPkgConfig.cmake:619 (message):
+  The following required packages were not found:
+
+   - libavcodec>=57.0"
+   
+   
+   
+   Perfect — that means your **CMake now works fine**, but during the **Notcurses** build, it’s missing a multimedia dependency:
+`libavcodec` (from FFmpeg).
+
+Notcurses uses FFmpeg for rendering videos (`ncplayer`), so if it’s missing or too old, you’ll get that error.
+
+Let’s fix it step-by-step 👇
+
+---
+
+## 🧰 Step 1: Install all FFmpeg dependencies
+
+Run this command:
+
+```bash
+sudo apt install -y libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavfilter-dev ffmpeg
+```
+
+These packages provide:
+
+* `libavcodec` → video/audio codec functions
+* `libavformat` → media containers (MP4, MKV, etc.)
+* `libavutil`, `libswscale`, `libavfilter` → internal helpers and filters
+
+---
+
+## 🧹 Step 2: Clean and re-run CMake
+
+If you already ran `cmake ..` before, clear and reconfigure it:
+
+```bash
+cd ~/notcurses/build
+rm -rf *
+cmake ..
+make -j$(nproc)
+sudo make install
+sudo ldconfig
+```
+
+---
+
+## 🧪 Step 3: Verify installation
+
+Try:
+
+```bash
+notcurses-demo
+```
+
+or
+
+```bash
+ncplayer /usr/share/doc/libavcodec-dev/examples/ffmpeg-logo.png
+```
+
+If everything is okay, the demo should run with color animation output in your terminal.
+
+---
+
+## ⚙️ Optional: Build without FFmpeg (if you don’t need video)
+
+If you can’t install FFmpeg (e.g., minimal system), you can build Notcurses **without video support**:
+
+```bash
+cd ~/notcurses/build
+rm -rf *
+cmake .. -DUSE_FFMPEG=off
+make -j$(nproc)
+sudo make install
+```
+
+That will disable `ncplayer` but allow you to use the rest of Notcurses (text graphics, animations, etc.).
+
+---
+
+Would you like me to show you a **small C test program** that uses Notcurses to print colored text and check that your build works?
+
+
+
+
+
+
+-- The following REQUIRED packages have not been found:
+
+ * doctest (required version >= 2.3.5)
+
+CMake Error at /usr/local/share/cmake-3.28/Modules/FeatureSummary.cmake:464 (message):
+  feature_summary() Error: REQUIRED package(s) are missing, aborting CMake
+  run.
+Call Stack (most recent call first):
+  CMakeLists.txt:222 (feature_summary)
+  
+  
+  
+  
+  That error means CMake succeeded in finding FFmpeg, but now **the Notcurses build requires the `doctest` library** — which is used only for **unit tests**, not for runtime use.
+
+You have two ways to fix this, depending on what you want:
+
+---
+
+## ✅ Option 1: **Build without doctest (recommended for normal use)**
+
+You don’t need doctest unless you want to run Notcurses’ internal test suite.
+So simply tell CMake to skip tests:
+
+```bash
+cd ~/notcurses/build
+rm -rf *
+cmake .. -DUSE_DOCTEST=off
+make -j$(nproc)
+sudo make install
+sudo ldconfig
+```
+
+That’s the easiest and cleanest way to build the library for development and usage.
+
+---
+
+## 🧰 Option 2: **Install doctest (if you want to run tests)**
+
+Ubuntu doesn’t ship doctest by default, so you can install it manually:
+
+```bash
+sudo apt install doctest-dev
+```
+
+If your Ubuntu doesn’t have that package (older versions might not), you can get it from source:
+
+```bash
+cd ~
+git clone https://github.com/onqtam/doctest.git
+sudo mkdir -p /usr/local/include/doctest
+sudo cp -r doctest/doctest /usr/local/include/
+```
+
+Then rebuild Notcurses normally:
+
+```bash
+cd ~/notcurses/build
+rm -rf *
+cmake ..
+make -j$(nproc)
+sudo make install
+sudo ldconfig
+```
+
+---
+
+✅ **Recommended for you:**
+Since you’re building Notcurses just to use (not to run its internal test framework),
+use:
+
+```bash
+cmake .. -DUSE_DOCTEST=off
+```
+
+---
+
+Would you like me to show the **minimum working C program** using your new Notcurses install to verify it’s working correctly?
+
+
+
+
+
+
+
+CMake Error at CMakeLists.txt:968 (message):
+  pandoc not found.  USE_PANDOC=OFF to disable.
+  
+  
+  
+  
+  Right — now CMake is complaining that **Pandoc** (a documentation converter) is missing.
+Like `doctest`, it’s **not required for using Notcurses** — only for building the documentation and man pages.
+
+You can fix this in one of two ways:
+
+---
+
+## ✅ Option 1: Disable Pandoc (recommended)
+
+You don’t need Pandoc to use the library.
+Just rebuild with the flag:
+
+```bash
+cd ~/notcurses/build
+rm -rf *
+cmake .. -DUSE_DOCTEST=off -DUSE_PANDOC=off
+make -j$(nproc)
+sudo make install
+sudo ldconfig
+```
+
+That will skip documentation generation, and the build will proceed normally.
+
+---
+
+## 🧰 Option 2: Install Pandoc (if you want to build docs)
+
+If you actually want the manpages built too:
+
+```bash
+sudo apt install -y pandoc
+```
+
+Then re-run:
+
+```bash
+cd ~/notcurses/build
+rm -rf *
+cmake ..
+make -j$(nproc)
+sudo make install
+sudo ldconfig
+```
+
+---
+
+✅ **Recommendation for you:**
+Since you just want to build and use Notcurses, not its docs or tests,
+the best command is:
+
+```bash
+cmake .. -DUSE_DOCTEST=off -DUSE_PANDOC=off
+```
+
+---
+
+Would you like me to give you a short **C test program** that prints colored output using Notcurses to confirm everything is working after build?
+
+
+
+
+
+how to check notcurses version
+
+
+
+You can check the **Notcurses version** in several simple ways, depending on how you installed it.
+
+---
+
+### 🧩 **1. Using the `notcurses-demo` binary**
+
+If you installed the demos:
+
+```bash
+notcurses-demo --version
+```
+
+or just:
+
+```bash
+notcurses-demo
+```
+
+→ It prints the version banner at startup, something like:
+
+```
+notcurses-demo 3.0.9 on x86_64 Linux
+```
+
+---
+
+### 🧠 **2. Using `pkg-config` (for development)**
+
+If you built and installed from source (with `libnotcurses.pc` installed):
+
+```bash
+pkg-config --modversion notcurses
+```
+
+This outputs something like:
+
+```
+3.0.9
+```
+
+If that gives “not found,” you might need to refresh your pkg-config paths:
+
+```bash
+sudo ldconfig
+export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH
+pkg-config --modversion notcurses
+```
+
+---
+
+### ⚙️ **3. Using `ldconfig`**
+
+To check what’s installed under `/usr/local/lib`:
+
+```bash
+ldconfig -p | grep notcurses
+```
+
+Example output:
+
+```
+libnotcurses.so.3 (libc6,x86-64) => /usr/local/lib/libnotcurses.so.3.0.9
+```
+
+---
+
+### 🧾 **4. If you cloned from GitHub**
+
+You can see the version tag in your source tree:
+
+```bash
+cd ~/notcurses
+git describe --tags
+```
+
+Example:
+
+```
+v3.0.9
+```
+
+---
+
+Would you like me to show how to print the Notcurses version **programmatically in C code** (using its API)?
+
+
+CMake Error at /usr/local/share/cmake-3.28/Modules/FindPkgConfig.cmake:619 (message):
+  The following required packages were not found:
+
+   - libavdevice>=57.0
+   
+   
+   ### Understanding the Error
+This CMake error occurs during the configuration phase when your project's `CMakeLists.txt` (or a related script) uses `pkg_check_modules` from the `FindPkgConfig` module to locate required libraries via `pkg-config`. Specifically, it's failing to find the development files for `libavdevice` (part of FFmpeg), which is required at version 57.0 or higher. The `.pc` file for this package (likely `libavdevice.pc`) isn't being detected in the standard `pkg-config` search paths (e.g., `/usr/lib/pkgconfig`, `/usr/local/lib/pkgconfig`).
+
+This is common when building projects that depend on FFmpeg (e.g., media processing tools, video encoders, or plugins). The error halts the build because the package is marked as `REQUIRED`.
+
+### Steps to Fix It
+Follow these steps in order. The solution depends on your OS/distribution. If you're unsure of your OS, run `uname -a` or `cat /etc/os-release`.
+
+#### 1. **Verify the Issue with pkg-config**
+   Before installing anything, check if `pkg-config` can find the package:
+   ```
+   pkg-config --modversion libavdevice
+   ```
+   - If it returns a version ≥57.0 (e.g., "58.2.100"), the library is installed but CMake can't locate it—proceed to Step 3.
+   - If it errors (e.g., "Package libavdevice was not found"), the dev package is missing—proceed to Step 2.
+
+#### 2. **Install the Missing FFmpeg Development Package**
+   Install the FFmpeg development libraries (which include `libavdevice`). Use your package manager:
+
+   | OS/Distribution | Command |
+   |-----------------|---------|
+   | **Ubuntu/Debian** | `sudo apt update && sudo apt install libavdevice-dev libavformat-dev libavcodec-dev libavutil-dev libswscale-dev libswresample-dev` (installs all common FFmpeg components for safety) |
+   | **Fedora/RHEL/CentOS** | `sudo dnf install ffmpeg-devel` (or `sudo yum install ffmpeg-devel` on older versions) |
+   | **Arch Linux** | `sudo pacman -S ffmpeg` |
+   | **macOS (with Homebrew)** | `brew install ffmpeg` |
+   | **From Source (if packages fail)** | Download FFmpeg from [ffmpeg.org](https://ffmpeg.org/download.html), extract, and run `./configure --enable-shared && make && sudo make install`. Ensure `--prefix=/usr/local` if needed. |
+
+   After installation:
+   - Re-run `pkg-config --modversion libavdevice` to confirm (should now show a version).
+   - Clean your CMake cache: `rm -rf build/CMakeCache.txt CMakeFiles/` (assuming a `build/` dir), then re-run `cmake .` or `cmake -B build`.
+
+#### 3. **Fix pkg-config Path Issues (If Package is Installed but Not Detected)**
+   If the package is installed but `pkg-config` can't find it:
+   - Check/search for the `.pc` file: `find /usr -name "libavdevice.pc" 2>/dev/null` (or `/usr/local` if you installed from source).
+   - Add its directory to `PKG_CONFIG_PATH`:
+     ```
+     export PKG_CONFIG_PATH="/usr/lib/x86_64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH"  # Adjust path as needed (common on Ubuntu)
+     # Or for /usr/local: export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH"
+     ```
+     Add this to `~/.bashrc` or `~/.profile` for persistence.
+   - Re-run CMake.
+
+#### 4. **CMake-Specific Workarounds (If Needed)**
+   - **Make it Optional**: Edit your `CMakeLists.txt` to remove `REQUIRED` from `pkg_check_modules(LIBAV REQUIRED ... libavdevice ...)`. This lets CMake proceed but may cause linker errors later—handle linking manually with `target_link_libraries(your_target avdevice avformat ... )`.
+   - **Specify Paths in CMake**: If FFmpeg is in a non-standard location (e.g., `/opt/ffmpeg`):
+     ```
+     cmake -DCMAKE_PREFIX_PATH=/opt/ffmpeg ..
+     ```
+   - **Use FindFFmpeg Module**: Instead of `pkg_check_modules`, switch to CMake's built-in `find_package(FFmpeg REQUIRED COMPONENTS avdevice avformat avcodec avutil ... )` in `CMakeLists.txt`. This is more robust and doesn't rely on `pkg-config`.
+
+#### 5. **Additional Tips**
+   - **Version Check**: Version 57.0 corresponds to FFmpeg 3.x+. Most modern distros (e.g., Ubuntu 20.04+) have 4.x+ (58+), so installation should satisfy it. If you need exactly ≥57.0, confirm with `ffmpeg -version`.
+   - **Full FFmpeg Suite**: Often, projects need multiple FFmpeg libs (avcodec, avutil, etc.). Install them all to avoid follow-up errors.
+   - **Docker/Containers**: If building in a container, add the install command to your Dockerfile.
+   - **Still Stuck?** Share your OS, full CMake output, and `CMakeLists.txt` snippet for more help. Common in projects like video editors or ROS packages.
+
+This should resolve the error—re-run your build after Step 2!
