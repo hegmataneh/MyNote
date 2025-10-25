@@ -274,3 +274,17 @@ sudo apt-get install libasan8-dbgsym
 
 # run as root (or use sudo) so you can write to /root/projects on the receiver
 sudo wget -r -np -nH --cut-dirs=0 -R "index.html*" -P /root/projects http://10.202.18.88:8000/
+
+
+sudo apt install tmux
+
+tmux new -s 10_202_18_88
+tmux new -s 192_168_4_2
+tmux new -s 192_168_5_2
+tmux new -s 192_168_6_2
+
+
+tmux attach -t 10_202_18_88
+tmux attach -t 192_168_4_2
+tmux attach -t 192_168_5_2
+tmux attach -t 192_168_6_2

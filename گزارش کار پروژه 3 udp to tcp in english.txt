@@ -109,7 +109,5 @@ Only pcap-based raw packet capture could be tested because others required a rea
 * Create required test cases for different code modules
 * Test basic subroutines
 * Add comments and documentation to code
-* Support parallel output to multiple logstash destinations if specified in config
 * Implement graceful degradation and avoid program termination on failure
-* If possible, allow sending data beyond MTU size to speed up draining of high-performance stored data
 * Implement alert system for situations where log access policy fails (e.g., disk or memory full)

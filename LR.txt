@@ -1,3 +1,11 @@
+- روش کرنل دیسپتچ کند
+
+tmux . replicate or duplicate and maintain console in linux
+
+14040730
+
+-----------
+
 tcp connection keep alive
 
 14040728
@@ -17,7 +25,7 @@ tcp connection keep alive
 	- ضریب استراحت
 	- با این فرض زمان نده که همه چیز خوب پیش میره
 	- هیچ وقت اسم متغیر را i , j نگذار
-	- قانون first touch را برای مموری ها رعایت کن
+	- قانون touch first را برای مموری ها رعایت کن
 	- Affinity هام درست باشد که thread ها در دسترسی به حافظه بیشترین سرعت را داشته باشند
 	- tag function thread safe and largedata
 	- رعایت false sharing و alignment را بکن سرعت رایت بیشتر بشه . جایی که چند تا ترد متغیر های نزدیک هم را تاچ می کند
@@ -973,15 +981,12 @@ vnstat
 
 network monitoring
 {
-	
 	dumpcap
 	{
 		dumpcap -i enp0s3 -f "udp port 1234" -c 5000000 -a duration:220 // count received udp packet
 		
 		
 	}
-	
-	
 	
 	nping // nping: part of nmap, can send many UDP/TCP/ICMP packets
 	{

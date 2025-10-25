@@ -426,3 +426,102 @@ Do you want me to show you how to make **tmux automatically start `Protocol_Brid
 
 
 }
+
+
+
+
+how to make named tmux then how to detach from it and attach again to it by name and any hotket to manage use it
+{
+
+	Here’s how to **create, detach, and reattach to a named tmux session** — plus useful hotkeys you’ll need to manage it:
+
+	---
+
+	### 🧩 1. **Create a named tmux session**
+
+	```bash
+	tmux new -s mysession
+	```
+
+	* `-s mysession` gives it the name **mysession**.
+	* After this, you’ll be **inside tmux**.
+
+	---
+
+	### 🧷 2. **Detach from tmux**
+
+	Inside tmux, press:
+
+	```
+	Ctrl + b, then d
+	```
+
+	(That means hold **Ctrl**, press **b**, release both, then press **d**.)
+
+	→ You’ll return to your normal shell, and the session keeps running in the background.
+
+	---
+
+	### 🔁 3. **List existing tmux sessions**
+
+	```bash
+	tmux ls
+	```
+
+	Example output:
+
+	```
+	mysession: 1 windows (created Wed Oct 22 18:20:30 2025)
+	```
+
+	---
+
+	### 🔗 4. **Attach back to a session by name**
+
+	```bash
+	tmux attach -t mysession
+	```
+
+	If you forget the name:
+
+	```bash
+	tmux attach -t $(tmux ls | head -n1 | cut -d: -f1)
+	```
+
+	→ attaches to the first active session.
+
+	---
+
+	### 💣 5. **Kill a session**
+
+	```bash
+	tmux kill-session -t mysession
+	```
+
+	Or all at once:
+
+	```bash
+	tmux kill-server
+	```
+
+	---
+
+	### ⚡ Common tmux hotkeys (inside tmux)
+
+	| Action                  | Keys                                            |
+	| ----------------------- | ----------------------------------------------- |
+	| Detach                  | `Ctrl + b, d`                                   |
+	| New window              | `Ctrl + b, c`                                   |
+	| Switch window           | `Ctrl + b, n` (next) / `Ctrl + b, p` (previous) |
+	| List windows            | `Ctrl + b, w`                                   |
+	| Split pane (horizontal) | `Ctrl + b, "`                                   |
+	| Split pane (vertical)   | `Ctrl + b, %`                                   |
+	| Switch panes            | `Ctrl + b`, then arrow key                      |
+	| Close pane/window       | `exit` or `Ctrl + d`                            |
+
+	---
+
+	Would you like me to show you a **minimal .tmux.conf** file to make key usage easier (for example, using `Ctrl + a` instead of `Ctrl + b`)?
+
+
+}
