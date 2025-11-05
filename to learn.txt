@@ -1,5 +1,14 @@
 to learn
 {
+
+	چجوری cpu کلاک را افزایش می دهد
+
+	minorant
+	
+	majorant
+
+	map reduce algorithm
+
 	url stream ?
 	
 	download stream ?

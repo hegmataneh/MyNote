@@ -282,9 +282,211 @@ tmux new -s 10_202_18_88
 tmux new -s 192_168_4_2
 tmux new -s 192_168_5_2
 tmux new -s 192_168_6_2
+tmux new -s 192_168_8_2
 
 
 tmux attach -t 10_202_18_88
 tmux attach -t 192_168_4_2
 tmux attach -t 192_168_5_2
 tmux attach -t 192_168_6_2
+
+tmux attach -t 192_168_8_2
+
+tmux kill-session -t 10_202_18_88
+tmux kill-session -t 192_168_4_2
+tmux kill-session -t 192_168_5_2
+
+tmux kill-session -t 192_168_6_2
+
+tmux kill-session -t 192_168_8_2
+
+
+tshark -i ens192 -f "udp"
+
+
+--limit=1
+
+sudo tcpreplay -i ens192 --pps=0.033 --loop=0 --limit=1 udp_log.pcap
+
+sudo tcpreplay -i ens192 --pps=100000 --loop=0 udp_log.pcap
+
+
+editcap -r udp_log.pcap oudp_log0.pcap 1-1
+
+sudo tcpreplay -i ens192 oudp_log0.pcap
+sudo tcpreplay -i ens192 oudp_log1.pcap
+sudo tcpreplay -i ens192 oudp_log2.pcap
+
+http://10.202.18.88:8000
+
+
+
+tcprewrite \
+  --infile=/root/udp_log.pcap \
+  --outfile=/root/udp_log2.pcap \
+  --dstipmap=192.168.1.1/32:192.168.56.60/32 \
+  --portmap=10200:1234 \
+  --fixcsum
+  
+  
+tcprewrite \
+  --infile=/root/udp_log.pcap \
+  --outfile=/root/udp_log2.pcap \
+  --dstipmap=192.168.1.1/32:172.17.0.60/32 \
+  --portmap=10200:1234 \
+  --enet-dmac=08:00:27:30:41:f5 \
+  --enet-smac=08:00:27:9d:2d:f1 \
+  --fixcsum
+
+sudo tcprewrite --infile=/root/original.pcap --outfile=/root/rewrite_mac.pcap --enet-dmac=aa:bb:cc:dd:ee:ff --enet-smac=11:22:33:44:55:66
+
+
+
+tcprewrite \
+  --infile=/root/udp_log.pcap \
+  --outfile=/root/udp_log3.pcap \
+  --dstipmap=192.168.1.1/32:172.17.0.60/32 \
+  --portmap=10200:1234 \
+  --fixcsum
+  
+  
+sudo tcpreplay -i enp0s3 udp_log2.pcap
+
+sudo tcpreplay -i enp0s3 --limit=1 udp_log2.pcap
+
+sudo tshark -i any -f "udp"
+
+sudo tshark -i enp0s3 -f "udp dst port 1234"
+
+sudo tcpreplay -i enp0s3 --pps=1000 --loop=0 udp_log2.pcap
+
+sudo tshark -i any -f "udp dst port 10200"
+
+sudo tshark -i enp0s3 -f "udp dst port 1234" -q -T fields \
+  -e frame.number \
+  -e ip.src \
+  -e ip.dst \
+  -e udp.srcport \
+  -e udp.dstport \
+  -e udp.length
+  
+  
+echo -n "tst 123" | nc -u -w1 172.17.0.60 1234
+
+sudo tshark -r udp_log2.pcap -T fields \
+  -e frame.interface_name -e frame.number -e frame.time \
+  -e eth.src -e eth.dst -e wlan.sa -e wlan.da \
+  -E header=y -E separator=, -E occurrence=f
+  
+  
+sudo tshark -r udp_log.pcap -T fields -e eth.src -e eth.dst -e ip.src -e ip.dst -e udp.srcport -e udp.dstport | head
+sudo tcpdump -nn -r udp_log2.pcap -c 20
+
+
+
+for iface in enp0s3 enp0s8 enp0s9; do
+    sudo tcpreplay -i $iface --limit=1 udp_log2.pcap
+done
+
+
+sudo tcpreplay -i enp0s3 --limit=1 udp_log2.pcap
+sudo tcpreplay -i enp0s8 --limit=1 udp_log2.pcap
+sudo tcpreplay -i enp0s9 --limit=1 udp_log2.pcap
+
+
+
+tshark -r udp_log2.pcap -q -z io,stat,0,"COUNT(udp)"
+
+
+capinfos -c udp_log2.pcap
+
+sudo tshark -r udp_log2.pcap -Y "udp && !ip.frag" -T fields -e udp.length
+
+sudo tshark -r udp_log2.pcap -Y "udp" -T fields -e udp.stream | sort -u | wc -l
+
+
+sudo tshark -i enp0s3 -f "udp dst port 1234" -a duration:120 -q |
+awk 'BEGIN {
+    count = 0
+}
+{
+    count += 1
+}
+END {
+        printf("Packet count: %d\n", count)
+}'
+
+
+tshark -r udp_log2.pcap -Y "udp" -c 11000 -w top11000_udp.pcap
+
+
+tshark -r udp_log2.pcap -Y "udp" -c 11000 -w top11000_udp.pcap
+
+
+sudo tcpreplay -i enp0s3 --pps=100 --loop=100 1000_udp.pcap
+
+
+nc -zv 192.168.4.2 10100
+
+
+sudo tshark -i ens160 -f "udp dst port 10200" 
+
+
+tshark -i ens192 -f "udp dst portrange 10202"
+
+
+enp0s10
+
+
+scp -P 6969 /home/user/1000_udp.pcap user@2.189.5.120:/home/user
+
+ssh -p 6969 user@2.189.5.120
+
+
+sudo tshark -r /home/user/1000_udp.pcap -Y "udp" -c 1 -V
+
+
+  Source: 192.168.1.2
+    Destination: 172.17.0.60
+	  Source Port: 47042
+    Destination Port: 1234
+	
+	
+	
+tcprewrite \
+--infile=/home/user/1000_udp.pcap \
+--outfile=/home/user/f120_1000_udp.pcap \
+--dstipmap=172.17.0.60/32:10.202.18.88/32 \
+--portmap=1234:10202 \
+--enet-smac=00:0c:29:e2:2b:c4 \
+--enet-dmac=00:0c:29:3f:48:12 \
+--fixcsum
+
+
+--srcipmap=192.168.1.2/2.189.5.120 \
+
+
+
+scp /user/1000_udp.pcap user@2.189.5.120:/home/user
+
+
+scp -r /home/user/projects root@192.168.8.2:/root/projects
+
+
+
+
+sudo tcpreplay -i ens192 --pps=100 --loop=100 f120_1000_udp.pcap
+
+
+
+4: ens192
+5: ens225
+6: ens162
+7: ens193
+8: ens161
+9: ens256
+10: ens224
+11: ens194
+
+
+tshark -i ens194 -f "udp dst portrange 10202"

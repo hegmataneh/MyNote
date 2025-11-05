@@ -48,3 +48,39 @@
 -  مستند سازی برنامه و کامنت گذاری - 3 روز کاری
 - اولویت بندی پکت ها و ارسال موارد اولویت دار - 10 روز کاری
 <<<
+
+
+
+
+It should first be mentioned that the first version of the program meets the basic requirements and is already deployed on the server. It is currently under stability testing. (The program started running on Wednesday and remained stable until Saturday)
+
+The following items are fixes for problems found after the first test on the production server, along with suggested use cases and performance improvements that can be implemented based on user decision.
+
+- Fix the errors reported by the memory sanitizer on the production server at running stage — 2 working days
+- Fix the defragmentator issue on the production server at running stage — 3 working days
+- Fix the issue where the program exits correctly about 80% of the time but sometimes sanitizer reports an error at close stage — 2 working days
+- Sort and clarify the reports, and correct the naming — 2 working days
+- Improve the report table performance (for example, switch tabs using Tab key and other shortkeys) — 2 working days
+
+>>>
++ Code improvements — 1 working day
+- improve naming of variables in the config — 0.5 working day
+- Remove hard-coded values — 0.5 working day
+<<<
+
+- Design a scenario to measure packet lost — 4 working days
+- Restart connections automatically when they hang for any reason — 1 working day
+- Add a feature to allow manual restart of a connection — 1 working day
+- Automatic thread management so that low-priority tasks use fewer system resources — 1 working day
+- Test app under high-load (using TCP replay) — 4 working days
+- Prepare a set of executable scenarios for testing — 4 working days
+- store large data in files and test program save/restore performance — 2 working days
+- Test packet delivery delay from receive to destination — 2 working days
+- Support complex configuration definitions and prepare a guide for config writing — 5 working days
+- Add rate limitation for output — 3 working days
+- Write a validator for the config file — 3 working days
+- Fix Head-of-line blocking issue , where an unsent packet at the top of the stack blocks following packets — 10 working days
+- Allow program to accept a memmap file (for example, a folder containing files to be sent automatically) — 1 working day
+- Write documentation and add code comments — 3 working days
+- Add packet prioritization and send high-priority packets first — 10 working days
+- Prepare all necessary tools to compile inside Linux instead of using Visual Studio — 10 working days

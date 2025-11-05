@@ -1,0 +1,97 @@
+how in ubuntu linux instead of root@s6-db write root@168_6_2
+{
+
+You can change what appears after `@` in your Linux shell prompt by editing the **hostname** or **PS1 prompt**.
+
+Here are **two methods**, depending on what you actually want:
+
+---
+
+### 🟢 **Option 1: Change the system hostname**
+
+This changes it system-wide (affects SSH, terminal prompt, etc.)
+
+1. Check your current hostname:
+
+   ```bash
+   hostname
+   ```
+
+   Example output: `s6-db`
+
+2. Set a new hostname (temporarily until reboot):
+
+   ```bash
+   sudo hostname 168_6_2
+   ```
+
+3. To make it **permanent**, edit `/etc/hostname`:
+
+   ```bash
+   sudo nano /etc/hostname
+   ```
+
+   Replace its content with:
+
+   ```
+   168_6_2
+   ```
+
+   Then edit `/etc/hosts` and update the line with your old hostname, e.g.:
+
+   ```
+   127.0.1.1   168_6_2
+   ```
+
+4. Apply changes:
+
+   ```bash
+   sudo systemctl restart systemd-logind
+   ```
+
+   or simply reboot.
+
+✅ After that, your prompt should show:
+
+```
+root@168_6_2:~#
+```
+
+---
+
+### 🟡 **Option 2: Just customize the prompt (temporary or per-user)**
+
+If you don’t want to change the system hostname, just modify the shell prompt.
+
+To test it temporarily:
+
+```bash
+export PS1="\u@168_6_2:\w\$ "
+```
+
+To make it permanent for `root`, add that line to:
+
+```bash
+nano /root/.bashrc
+```
+
+or for your user:
+
+```bash
+nano ~/.bashrc
+```
+
+Then reload:
+
+```bash
+source ~/.bashrc
+```
+
+✅ Your prompt will show `root@168_6_2` but the real hostname stays `s6-db`.
+
+---
+
+Would you like me to make it system-wide (affect SSH and `hostname` command) or just in your terminal prompt?
+
+
+}

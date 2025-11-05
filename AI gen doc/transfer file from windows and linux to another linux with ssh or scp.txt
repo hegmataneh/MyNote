@@ -1,0 +1,391 @@
+i have file in my windows and i can ping some machine in network . how can send file into that machine that i can ssh into it
+{
+Nice — since you can SSH into the machine, the easiest and most reliable ways are `scp`/SFTP (secure copy over SSH) or a GUI SFTP client. Below I give several practical options (command examples + quick troubleshooting). Pick whichever matches your setup.
+
+---
+
+# Quick checklist (before copying)
+
+1. You can SSH: `ssh user@REMOTE_IP` (if that works, file copy will work).
+2. Know the SSH port (default `22`). If non-standard, note it (e.g. `2222`).
+3. Know the remote path where you want the file (e.g. `/home/user/` or `C:\Users\user\` if remote is Windows with SSH).
+4. If Windows firewall blocks outgoing or remote blocks incoming, copy will fail — see troubleshooting below.
+
+---
+
+# 1) Recommended: `scp` (command line)
+
+Windows 10/11 usually has OpenSSH client. From PowerShell or CMD:
+
+Copy single file:
+
+```
+scp C:\path\to\myfile.txt user@192.168.1.5:/home/user/
+```
+
+If remote uses a different port (e.g. 2222):
+
+```
+scp -P 2222 C:\path\to\myfile.txt user@192.168.1.5:/home/user/
+```
+
+Copy a directory recursively:
+
+```
+scp -r C:\path\to\myfolder user@192.168.1.5:/home/user/
+```
+
+If you use WSL, you can run the usual Linux `scp` from inside WSL:
+
+```
+scp /mnt/c/Users/you/file.txt user@192.168.1.5:/home/user/
+```
+
+---
+
+# 2) If you use PuTTY tools: `pscp`
+
+If you installed PuTTY, use `pscp.exe` from Command Prompt (or add it to PATH):
+
+```
+pscp C:\path\to\myfile.txt user@192.168.1.5:/home/user/
+pscp -P 2222 C:\path\to\myfile.txt user@192.168.1.5:/home/user/
+```
+
+---
+
+# 3) GUI: WinSCP (easy, drag & drop)
+
+1. Install WinSCP.
+2. New session → Protocol: SFTP (or SCP), Host name = `192.168.1.5`, Username, Port.
+3. Login and drag your file from left (local) to right (remote).
+   Good if you prefer visual file transfers.
+
+---
+
+# 4) FileZilla (SFTP) — GUI alternative
+
+Use FileZilla Client, choose SFTP, connect and transfer via drag & drop.
+
+---
+
+# 5) `rsync` over SSH (for large/partial/efficient sync)
+
+If you need resume/delta transfers, use `rsync` from WSL or Cygwin:
+
+```
+rsync -avP /mnt/c/Users/you/largefile user@192.168.1.5:/home/user/
+```
+
+`-P` shows progress and allows resume.
+
+---
+
+# 6) If `scp`/SFTP are not available: pipe over `ssh`
+
+You can upload using a raw SSH pipe (works even if no scp client):
+From PowerShell/CMD:
+
+```
+type C:\path\to\myfile.txt | ssh user@192.168.1.5 "cat > /home/user/myfile.txt"
+```
+
+Or in PowerShell:
+
+```
+Get-Content C:\path\to\myfile.txt -Raw | ssh user@192.168.1.5 "cat > /home/user/myfile.txt"
+```
+
+(Useful trick when limited tools are installed.)
+
+---
+
+# Troubleshooting
+
+* If `scp` hangs or fails: test SSH first: `ssh user@192.168.1.5` — if login works, copying should.
+* If non-standard port: use `-P` (scp/pscp) or `-p` (rsync uses `-e "ssh -p PORT"`). Example:
+
+  ```
+  scp -P 2222 file user@host:/path/
+  ```
+* If permission denied on remote, check target directory permissions or use a directory you own (`/home/user/` or `/tmp/`).
+* To test port from Windows PowerShell:
+
+  ```
+  Test-NetConnection -ComputerName 192.168.1.5 -Port 22
+  ```
+* If remote is Windows and has SMB share enabled, you can also copy via UNC path: `\\REMOTE_IP\share` (but only if that share exists).
+
+---
+
+# Example full session
+
+Assume local file `C:\Users\me\report.txt`, remote user `root`, remote IP `192.168.1.5`, remote folder `/root/`:
+
+```
+scp C:\Users\me\report.txt root@192.168.1.5:/root/
+# enter password when prompted
+```
+
+---
+
+If you tell me:
+
+* the Windows path of the file,
+* the remote username and IP (or hostname), and
+* whether SSH runs on a nonstandard port —
+  I can give the exact command line to paste.
+
+}
+
+how about transfer from ubuntu to ubuntu
+{
+Good — between two **Ubuntu machines**, it’s even simpler since both already have OpenSSH and `scp`/`rsync` available by default.
+
+Here are the standard and most practical ways:
+
+---
+
+## 🧩 Option 1 — `scp` (secure copy)
+
+Copy file:
+
+```bash
+scp /path/to/local/file.txt user@192.168.1.5:/home/user/
+```
+
+Copy folder:
+
+```bash
+scp -r /path/to/local/folder user@192.168.1.5:/home/user/
+```
+
+If SSH port is not 22:
+
+```bash
+scp -P 2222 /path/to/file.txt user@192.168.1.5:/home/user/
+```
+
+> 💡 Tip:
+> You can use your local `$USER` if the remote has the same username:
+>
+> ```bash
+> scp file.txt 192.168.1.5:/home/$USER/
+> ```
+
+---
+
+## 🧩 Option 2 — `rsync` (faster and resumable)
+
+Better for big or many files.
+
+```bash
+rsync -avP /path/to/local/file.txt user@192.168.1.5:/home/user/
+```
+
+Flags:
+
+* `-a` = archive (preserve permissions, timestamps)
+* `-v` = verbose
+* `-P` = show progress + resume if interrupted
+
+For directories:
+
+```bash
+rsync -avP /path/to/folder/ user@192.168.1.5:/home/user/folder/
+```
+
+If SSH uses custom port:
+
+```bash
+rsync -avP -e "ssh -p 2222" /path/to/folder/ user@192.168.1.5:/home/user/
+```
+
+---
+
+## 🧩 Option 3 — `sftp` (interactive file transfer)
+
+```bash
+sftp user@192.168.1.5
+```
+
+Then inside the prompt:
+
+```
+put localfile.txt
+get remotefile.txt
+ls
+cd
+exit
+```
+
+---
+
+## 🧩 Option 4 — quick one-line SSH pipe (no scp/rsync)
+
+If you only need to send one file and want minimal setup:
+
+```bash
+cat file.txt | ssh user@192.168.1.5 "cat > /home/user/file.txt"
+```
+
+---
+
+## 🧩 Option 5 — if both are in same LAN and you prefer shared folder
+
+You can also temporarily share a folder:
+
+```bash
+python3 -m http.server 8000
+```
+
+on the sender machine, then on the receiver:
+
+```bash
+wget http://192.168.1.10:8000/file.txt
+```
+
+(but this is not encrypted, so only use on trusted LANs).
+
+---
+
+## 🔍 Verify SSH works first
+
+Before transferring, always confirm SSH access:
+
+```bash
+ssh user@192.168.1.5
+```
+
+If that connects, all the above will work.
+
+---
+
+Would you like me to show the **exact `scp` command** for your setup if you tell me:
+
+* sender file path (on Ubuntu)
+* receiver IP
+* receiver username
+* and remote directory you want to copy into?
+
+}
+
+
+
+it said to me Permission denied, please try again
+{
+That message —
+
+```
+Permission denied, please try again.
+```
+
+— always means SSH authentication failed, **not** a file permission issue.
+Let’s quickly find the exact cause and fix it.
+
+---
+
+### 🔍 Step 1: Check SSH connection first
+
+Run:
+
+```bash
+ssh user@192.168.1.5
+```
+
+Replace `user` and `192.168.1.5` with your target.
+
+* If it **asks for a password**, type it carefully.
+* If it still says “Permission denied”, then:
+
+  * Either the **username or password is wrong**, or
+  * Password login is **disabled** on the remote SSH server, or
+  * You need to use an **SSH key** instead of password.
+
+---
+
+### 🧭 Step 2: Confirm the right username
+
+On the remote machine, run:
+
+```bash
+whoami
+```
+
+That gives the correct username you should use from the sender.
+
+For example, if it shows `mohsen`, use:
+
+```bash
+scp file.txt mohsen@192.168.1.5:/home/mohsen/
+```
+
+---
+
+### 🧱 Step 3: Check remote SSH config
+
+On the **target** machine (the one you’re copying *to*), check:
+
+```bash
+sudo nano /etc/ssh/sshd_config
+```
+
+Look for these lines:
+
+```
+PasswordAuthentication yes
+PermitRootLogin yes
+```
+
+If either is `no`, change to `yes` (if you want to allow password login), then restart SSH:
+
+```bash
+sudo systemctl restart ssh
+```
+
+---
+
+### 🗝 Step 4: (Alternative) Use SSH key login
+
+If the remote doesn’t allow password login, use an SSH key:
+
+On the **sending** machine:
+
+```bash
+ssh-keygen -t ed25519
+ssh-copy-id user@192.168.1.5
+```
+
+Then try:
+
+```bash
+ssh user@192.168.1.5
+```
+
+It should log in without password. Then `scp` will work fine too.
+
+---
+
+### 🧩 Step 5: File permission confusion
+
+If SSH **logs in fine**, but scp still says permission denied *after login*, then the issue is with the **remote path**, not authentication.
+
+For example:
+
+```
+scp file.txt user@192.168.1.5:/root/
+```
+
+will fail unless you’re root.
+Instead use:
+
+```
+scp file.txt user@192.168.1.5:/home/user/
+```
+
+---
+
+If you show me the **exact command you ran** and **exact message output**, I can tell you in one line what’s wrong (username, path, or SSH setting).
+Can you paste that here?
+
+}

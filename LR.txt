@@ -1,6 +1,37 @@
+
+در سیستمی که محمد آقا باهاش کار می کرد برای double 16 بایت در نظر گرفت با اینکه Sizeof آنرا 8 تا نشان می داد این مسئله در var_arg است یعنی وقتی می خواهد int را به یک تابع var پاس دهد آنرا 8 تایی پاس می دهد. همچنین همه float , double , long double را 16 تایی پاس می دهد
+
+
+14040811
+
+-----------
+
+user: mohsen
+pass: 123456
+
+xwindow in ubuntu 192.168.56.60 , 172.17.0.60
+
+to exit to cli
+Ctrl + Alt + F3
+
+14040805
+
+--------
+
+در vm مشکل ارسال و دریافت با pcap را نداشتم و در بالا داشتم که علتش این بود که udp های بالا id 65535 داشت و من در pcap اندازه arr خود را u_short_max گرفتم که مقدار بدی بود
+
+14040804
+
+----------
+
 - روش کرنل دیسپتچ کند
 
 tmux . replicate or duplicate and maintain console in linux
+
+tmux kill-session -t session1
+
+To detach from your current tmux session
+Ctrl+b  d
 
 14040730
 
@@ -204,6 +235,19 @@ speed up wrap around number
 }
 
 - when remove all breakpoint my stack trace work fine
+
+if copy tcp_read_data to new machine link error libasan.o then
+{
+	- sudo apt install libpcap-dev
+	- sudo apt install openssh-server
+	- sudo apt update
+	- sudo apt install build-essential gcc g++ gdb zip rsync
+	- sudo apt install -y make cmake
+	- sudo apt install wireshark tshark
+	- sudo apt install libncurses5-dev libncursesw5-dev
+	- sudo apt install -y libnotcurses-dev pkg-config build-essential
+	- sudo apt install libnotcurses-dev
+}
 
 init VM in virtualbox
 {
@@ -1370,6 +1414,8 @@ file server and downloader in linux
 	wget http://192.168.100.59:8000/client2-disk1.vdi // get served file like idm
 	wget http://192.168.100.59:8000/ubuntu.vdi -O output_file >wget_^Cg.txt 2>&1
 	python3 -m http.server 8000
+
+	wget http://192.168.56.60:8000
 
 	get from nginx
 	{

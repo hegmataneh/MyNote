@@ -29,8 +29,8 @@ daily routin
 
 
 	ssh user@10.202.18.88
-	*QwEIoP*R*1qaz*
-
+	Sh3B*RAH*Sh3B
+	
 	ssh root@10.202.18.88
 	*QwEIoP*R*1qaz*
 
@@ -41,8 +41,15 @@ daily routin
 	*QwEIoP*R*1qaz*
 
 	ssh user@192.168.6.2
-
+	*QwEIoP*R*1qaz*
+	
+	ssh root@192.168.8.2
+	*QwEIoP*R*1qaz*
+	
 	ssh -p 6969 user@2.189.5.118
+	*QwEIoP*R*1qaz*
+
+	ssh -p 6969 user@2.189.5.120
 	*QwEIoP*R*1qaz*
 
 	by main server ssh to them
@@ -71,6 +78,9 @@ daily routin
 
 vmtest
 {
+	ssh root@192.168.56.58
+	123456
+
 	ssh root@192.168.56.59
 	123456
 
@@ -78,6 +88,9 @@ vmtest
 	123456
 
 	ssh root@192.168.56.61
+	123456
+	
+	ssh root@192.168.56.62
 	123456
 }
 
